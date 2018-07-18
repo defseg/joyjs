@@ -109,6 +109,7 @@ function TokenStream(input) {
 		var esc = false;
 		var str = "";
 		var chr;
+		input.next(); // discard beginning of string
 		while (!input.eof()) {
 			chr = input.next();
 			if (esc) { 
@@ -117,6 +118,7 @@ function TokenStream(input) {
 				if (chr == "\"") {
 					return {"type": "str", "value": str};
 				}
+				str += chr;
 			}
 			if (chr == "\\") esc = true;
 		}
@@ -323,10 +325,10 @@ function pops(stack, num_args, type_arr = false) {
 	if (type_arr) {
 		// make sure the types can be checked
 		if (args.length !== type_arr.length) throw new Error("Bad type_arr");
-		for (var i = 0; i < num_args.length; i++) {
+		for (var i = 0; i < num_args; i++) {
 			if (type_arr[i] === "any") continue;
 			// probably want a dialog or something here later
-			if (type_arr[i].indexOf(args[i]) !== -1) throw new Error("Type error");
+			if (type_arr[i].indexOf(typeof args[i]) === -1) throw new Error("Type error");
 		}
 	}
 	return args;
