@@ -18,7 +18,7 @@ function InputStream(input) {
 		return peek() == "";
 	}
 	function err(msg) {
-		throw new Error(msg + " (${line}:${col})");
+		throw new Error(msg + ` (${line}:${col})`);
 	}
 }
 
@@ -34,6 +34,8 @@ function TokenStream(input) {
 	// atom     {type: "atom" , value: "cons"}  "atomic symbol"
 	// --- Reserved stuff ---
 	// reserved {type: "reserved", value: "{"}  "reserved character" and "reserved word"
+
+	// TODO: floats don't work right yet
 	var current = null;
 	var reserved_words = new Set([
 		"==",
@@ -132,12 +134,12 @@ function TokenStream(input) {
 	}
 	function read_char() {
 		word = get_word();
-		if (word.length > 2) input.err("Invalid character literal ${word}");
+		if (word.length > 2) input.err(`Invalid character literal ${word}`);
 		return {"type": "char", "value": word[1]};
 	}
 	function read_number(word = false) {
 		if (!word) word = get_word();
-		if (!is_number(word)) input.err("Invalid number ${word}");
+		if (!is_number(word)) input.err(`Invalid number ${word}`);
 		return parse_number(word);
 	}
 
@@ -208,13 +210,15 @@ function parse(input) {
 
 	function parse_toplevel() {
 		var prog = [];
+		var defs = {"type": "defs", "public": {}};
 		while (!input.eof()) {
-			prog.push(parse());
+			var tmp = parse(defs);
+			if (tmp !== undefined) prog.push(tmp); // parsing defs returns undefined
 		}
-		return {"type": "prog", "prog": prog};
+		return {"type": "prog", "prog": prog, "defs": defs};
 	}
 
-	function parse() {
+	function parse(defs) {
 		if (is_noun()) {
 			return parse_noun();
 		} else if (is_verb()) {
@@ -224,9 +228,9 @@ function parse(input) {
 		} else if (is_term()) {
 			return parse_term();
 		} else if (is_defblock()) {
-			return parse_defblock();
+			return parse_defblock(defs);
 		}
-		throw new Error("Parser error at ${input.peek()}");
+		throw new Error(`Parser error at ${input.peek().type} ${input.peek().value}`);
 	}
 
 	// --- Parsers ---
@@ -255,8 +259,26 @@ function parse(input) {
 		input.next(); // discard end of term
 		return term;
 	}
-	function parse_defblock() {
-		return {"type": "defblock", "value": "TODO"};
+	function parse_defblock(public_defs) {
+		if (["PRIVATE","HIDE"].indexOf(input.peek().value) > -1) 
+			throw new Error("Private definitions aren't implemented yet");
+		return parse_public_defblock(public_defs);
+	}
+	function parse_public_defblock(defs) {
+		while (!is_defblock_end()) {
+			input.next(); // discard defblock beginning or `;`
+			if (!is_verb()) input.err(`Bad definition at ${input.peek().type} ${input.peek().value}`);
+			var name = input.next().value;
+			if (!is_def_eq()) input.err(`Bad definition at ${input.peek().type} ${input.peek().value}`);
+			input.next(); // discard `==`
+			var defn = [];
+			while (!is_def_end()) {
+				defn.push(parse());
+			}
+			defs.public[name] = defn;
+		}
+		input.next(); // discard defblock end
+		return;
 	}
 
 	// --- "is" helpers ---
@@ -290,6 +312,12 @@ function parse(input) {
 		return input.peek().type === "reserved" &&
 		       ['END','.'].indexOf(input.peek().value) > -1;
 	}
+	function is_def_eq() {
+		return input.peek().type === "reserved" && input.peek().value === "==";
+	}
+	function is_def_end() {
+		return is_defblock_end() || (input.peek().type === "reserved" && input.peek().value === ";");
+	}
 }
 
 function evaluate(exp, stack, env = false) {
@@ -311,7 +339,7 @@ function evaluate(exp, stack, env = false) {
 			eval_verb(Symbol.keyFor(exp), stack, env);
 			return stack;
 		case "object": // assume it's a Prog; we'll make a proper class for this later
-			exp.prog.forEach(prog_exp => evaluate(prog_exp, stack, env));
+			exp.prog.forEach(prog_exp => evaluate(prog_exp, stack, exp.defs));
 			return stack;
 	}
 	console.log("You shouldn't be here!");
@@ -333,5 +361,8 @@ function has(thing, el) {
 // For convenience
 
 function joy(str) {
-	return evaluate(parse(TokenStream(InputStream(str))), []);
+	return evaluate(parse(TokenStream(InputStream(str))), new Stack());
+}
+function cjoy(str) {
+	return joy(str).toString();
 }
