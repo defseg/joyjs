@@ -322,14 +322,35 @@ function pops(stack, num_args, type_arr = false) {
 	var args = stack.splice(-num_args);
 	// Make sure we're not out of stack
 	if (args.length !== num_args) throw new Error("Out of stack");
-	if (type_arr) {
-		// make sure the types can be checked
-		if (args.length !== type_arr.length) throw new Error("Bad type_arr");
-		for (var i = 0; i < num_args; i++) {
-			if (type_arr[i] === "any") continue;
-			// probably want a dialog or something here later
-			if (type_arr[i].indexOf(typeof args[i]) === -1) throw new Error("Type error");
+	if (!type_arr) return args;
+
+	// OK, so we're checking types. First, make sure they can be checked.
+	if (args.length !== type_arr.length) throw new Error("Bad type_arr");
+	// Now make sure the type of each arg is contained in num_args.
+	// Because `typeof` returns "object" for all JS objects, including sets and arrays,
+	// we have to special-case sets and
+	for (var i = 0; i < num_args; i++) {
+		if (type_arr[i] === "any") continue;
+		// probably want a dialog or something here later
+		if (!has(type_arr[i], typeof args[i])) {
+			// have to special-case lists and sets
+			if (type_arr[i].has("set")  && args[i] instanceof Set  ) continue;
+			if (type_arr[i].has("list") && args[i] instanceof Array) continue; 
+			throw new Error("Type error");
 		}
 	}
 	return args;
+}
+function has(thing, el) {
+	if (thing instanceof Array) {
+		return thing.indexOf(el) > -1;
+	} else if (thing instanceof Set) {
+		return thing.has(el);
+	}
+}
+
+// For convenience
+
+function joy(str) {
+	return evaluate(parse(TokenStream(InputStream(str))), []);
 }
