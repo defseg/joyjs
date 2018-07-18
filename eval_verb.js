@@ -20,7 +20,7 @@ var js_verbs = {
 	,   "and": (stack => j_bool2(stack, "and"))
 	,   "or" : (stack => j_bool2(stack, "or" ))
 	,   "xor": (stack => j_bool2(stack, "xor"))
-	,	"not": (stack => !pops(stack, 1, ["boolean"])) // Not implementing `not` on sets since they aren't limited to ints 0..31 here.
+	,	"not": (stack => pushs(stack, !pops(stack, 1, [["boolean"]]))) // Not implementing `not` on sets since they aren't limited to ints 0..31 here.
 	,	"+"  : (stack => j_arith2(stack, (a, b) => a + b))
 	,	"-"  : (stack => j_arith2(stack, (a, b) => a - b))
 	,	"*"  : (stack => j_arith2(stack, (a, b) => a * b))
@@ -40,27 +40,60 @@ var js_verbs = {
 	,	"unstack": function (stack) {
 			var tmp = stack.pop();
 			stack.splice(0, stack.length);
-			stack.push(...(tmp.map(i => i.value)));
+			pushs(stack, tmp.map(i => i.value));
 		}
 	,	"cons": function (stack) { // TODO: should also work with sets?
 			var [car, cdr] = pops(stack, 2, [["any"], ["list"]]);
 			cdr.unshift(car);
-			stack.push(cdr);
+			pushs(stack, cdr);
 		}
 	// swons
 	,	"first": function (stack) { // Technically don't need to pops here but DRY type checking is nice
 			var thing = pops(stack, 1, [["list"]]);
 			if (thing.length === 0) throw new Error("Can't first or rest an empty list!");
-			console.log(thing);
-			console.log(thing[0]);
-			stack.push(thing[0]);
+			pushs(stack, thing[0]);
 		}
 	,	"rest": function (stack) {
 			var thing = pops(stack, 1, [["list"]]);
 			if (thing.length === 0) throw new Error("Can't first or rest an empty list!");
 			thing.shift();
-			stack.push(thing);
+			pushs(stack, thing);
 		}
+}
+
+// --- Stack helper functions ---
+// Eventually this will be refactored as a proper object, but until then...
+
+function pushs(stack, ...thing) {
+	stack.push(...thing);
+}
+
+function pops(stack, num_args, type_arr = false) {
+	// Pops and returns arguments from `stack`.
+	// Also does some simple type-checking.
+	// Will return an array if num_args > 1, otherwise will only return the thing.
+	var args = stack.splice(-num_args);
+	// Make sure we're not out of stack
+	if (args.length !== num_args) throw new Error("Out of stack");
+	if (!type_arr) return args;
+
+	// OK, so we're checking types. First, make sure they can be checked.
+	if (args.length !== type_arr.length) throw new Error("Bad type_arr");
+	// Now make sure the type of each arg is contained in num_args.
+	// Because `typeof` returns "object" for all JS objects, including sets and arrays,
+	// we have to special-case them.
+	for (var i = 0; i < num_args; i++) {
+		// Don't need to box in "any", but you can for consistency.
+		if (has(type_arr[i], "any") || type_arr[i] === "any") continue;
+		// probably want a dialog or something here later
+		if (!has(type_arr[i], typeof args[i])) {
+			// have to special-case lists and sets
+			if (has(type_arr[i], "set")  && args[i] instanceof Set  ) continue;
+			if (has(type_arr[i], "list") && args[i] instanceof Array) continue; 
+			throw new Error("Type error");
+		}
+	}
+	return num_args === 1 ? args[0] : args;
 }
 
 // --- Helper functions ---
@@ -84,11 +117,11 @@ function j_bool2(stack, func_name) {
 		,	"xor": (b, c) => !!(b ^ c)
 		}[func_name](a, b);
 	}
-	stack.push(res);
+	pushs(stack, res);
 }
 
 // Arithmetic operations with two arguments
 function j_arith2(stack, func) {
-	stack.push(pops(stack, 2, [['number'],['number']]).reduce(func));
+	pushs(stack, pops(stack, 2, [['number'],['number']]).reduce(func));
 	return stack;
 }

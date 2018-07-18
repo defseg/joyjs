@@ -232,11 +232,11 @@ function parse(input) {
 	// --- Parsers ---
 
 	function parse_noun() {
-		var thing = input.next();
-		return {"type": "noun", "value": thing.value, "klass": thing.type};
+		return input.next().value;
 	}
 	function parse_verb() {
-		return {"type": "verb", "value": input.next().value};
+		// TODO: will need private symbol tables eventually
+		return Symbol.for(input.next().value);
 	}
 	function parse_set() {
 		var set = new Set();
@@ -246,14 +246,14 @@ function parse(input) {
 			set.add(parse_noun());
 		}
 		input.next(); // discard end of set
-		return {"type": "set", "value": set};
+		return set;
 	}
 	function parse_term() {
 		var term = [];
 		input.next(); // discard beginning of term
-		while (!is_term_end()) term.push(parse());
+		while (!is_term_end()) term.push(parse(input));
 		input.next(); // discard end of term
-		return {"type": "term", "value": term};
+		return term;
 	}
 	function parse_defblock() {
 		return {"type": "defblock", "value": "TODO"};
@@ -295,52 +295,33 @@ function parse(input) {
 function evaluate(exp, stack, env = false) {
 	// Interprets an AST node and returns the modified stack.
 	// `env` should only be needed for defblocks, which don't exist yet.
-
-	switch (exp.type) {
-		case "noun": // fall through
-		case "set" :
-			// might want to keep track of `klass` (type)
-			stack.push(exp.value);
+	switch (j_type(exp)) {
+		case "boolean": // fall through
+		case "number" : // fall through
+		case "string" : // fall through
+		case "set"    : // fall through
+		case "array"  :
+			stack.push(exp);
 			return stack;
 		case "defblock":
 			throw new Error("Definitions aren't implemented yet");
 		case "def":
 			throw new Error("Definitions aren't implemented yet");
-		case "verb":
-			eval_verb(exp.value, stack, env);
+		case "symbol":
+			eval_verb(Symbol.keyFor(exp), stack, env);
 			return stack;
-		case "prog":
+		case "object": // assume it's a Prog; we'll make a proper class for this later
 			exp.prog.forEach(prog_exp => evaluate(prog_exp, stack, env));
 			return stack;
 	}
 	console.log("You shouldn't be here!");
 }
 
-function pops(stack, num_args, type_arr = false) {
-	// Pops and returns arguments from `stack`.
-	// Also does some simple type-checking.
-	var args = stack.splice(-num_args);
-	// Make sure we're not out of stack
-	if (args.length !== num_args) throw new Error("Out of stack");
-	if (!type_arr) return args;
-
-	// OK, so we're checking types. First, make sure they can be checked.
-	if (args.length !== type_arr.length) throw new Error("Bad type_arr");
-	// Now make sure the type of each arg is contained in num_args.
-	// Because `typeof` returns "object" for all JS objects, including sets and arrays,
-	// we have to special-case sets and
-	for (var i = 0; i < num_args; i++) {
-		if (type_arr[i] === "any") continue;
-		// probably want a dialog or something here later
-		if (!has(type_arr[i], typeof args[i])) {
-			// have to special-case lists and sets
-			if (type_arr[i].has("set")  && args[i] instanceof Set  ) continue;
-			if (type_arr[i].has("list") && args[i] instanceof Array) continue; 
-			throw new Error("Type error");
-		}
-	}
-	return args;
+function j_type(thing) {
+	if (typeof thing !== "object") return typeof thing;
+	return thing.constructor.name.toLowerCase();
 }
+
 function has(thing, el) {
 	if (thing instanceof Array) {
 		return thing.indexOf(el) > -1;
