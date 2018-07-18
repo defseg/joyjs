@@ -1,21 +1,41 @@
 function eval_verb(verb, stack, env = false) {
 	// Evaluates a verb and modifies the stack.
-	if (js_verbs.hasOwnProperty(verb)) return js_verbs[verb](stack);
+	if (js_verbs.hasOwnProperty(verb)) return get_verb(verb)(stack);
 	if (env && env.public && env.public.hasOwnProperty(verb)) 
 		return evaluate({type: "prog", prog: env.public[verb], defs: env.defs}, stack, env)
 	throw new Error(`Unimplemented command ${verb}`);
 }
 
-// Verbs defined in JS
+function get_verb(verb) {
+	switch (typeof js_verbs[verb]) {
+		case "function": // defined in JS
+			return js_verbs[verb];
+		case "string":   // defined in Joy
+			return (stack, env = false) => joy(js_verbs[verb], stack);
+	}
+}
+
+// Some of these are defined in JS, some in Joy.
+// Could optimize by preparsing the Joy ones but it's easier to read if we don't.
 var js_verbs = {
 	// Simple stack operations
-		"id"      : function (stack) {} 
-	,   "dup"     : function (stack) { var a = stack.pops(1);       stack.push(...[a,a]);   }
-	,	"swap"    : function (stack) { var [a, b] = stack.pops(2);  stack.push(...[b,a]);   }
-	,   "rollup"  : function (stack) { var [x,y,z] = stack.pops(3); stack.push(...[z,x,y]); }
-	// rolldown...rotated
-	,   "pop"     : function (stack) { stack.pops(1) }
-	// choice
+		"id"       : function (stack) {} 
+	,   "dup"      : function (stack) { var a = stack.pops(1);       stack.push(...[a,a]);   }
+	,	"swap"     : function (stack) { var [a, b] = stack.pops(2);  stack.push(...[b,a]);   }
+	,   "rollup"   : function (stack) { var [x,y,z] = stack.pops(3); stack.push(...[z,x,y]); }
+	,	"rolldown" : "rollup rollup"
+	,	"rotate"   : "rollup swap"
+	,	"popd"     : "[pop] dip"
+	,	"dupd"     : "[dup] dip"
+	,   "swapd"    : "[swap] dip"
+	,   "rollupd"  : "[rollup] dip"
+	,   "rolldownd": "[rolldown] dip"
+	,	"rotated"  : "[rotate] dip"
+	,   "pop"      : function (stack) { stack.pops(1) }
+	,	"choice"   : function (stack) {
+			var [maybe, true_cond, false_cond] = stack.pops(3, [["boolean"], "any", "any"]);
+			stack.push(maybe ? true_cond : false_cond);
+		}
 
 	// Boolean logic and arithmetic
 	,   "and": (stack => j_bool2(stack, "and"))
@@ -76,7 +96,14 @@ var js_verbs = {
 	,	"i": function (stack) {
 			evaluate({type: "prog", prog: stack.pops(1, [["list"]])}, stack);
 		}
-	// x...times
+	,	"x": "dup [i] dip"
+	,	"dip": function (stack) {
+			var prog = stack.pops(1, [["list"]]);
+			var tmp  = stack.pops(1);
+			evaluate({type: "prog", prog: prog}, stack);
+			stack.push(tmp);
+		}
+	// app1...times
 	,	"infra": function (stack) {
 			// Have to watch out -- in Joy the *first* element is the top of the stack
 
