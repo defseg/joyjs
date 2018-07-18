@@ -30,8 +30,11 @@ Stack.prototype.toString = function () {
 	return "Stack: " + this.arr.map(i => to_actually_good_string(i)).join(" ") + "";
 
 	function to_actually_good_string(thing) {
-		if (thing instanceof Array) return `[${thing.join(",")}]`; else
-		if (typeof thing === "string") return `"${thing}"`; else 
-		return thing.toString();
+		switch (j_type(thing)) {
+			case "array" : return `[${thing.map(i => to_actually_good_string(i)).join(",")}]`;
+			case "string": return `"${thing}"`;
+			case "symbol": return Symbol.keyFor(thing);
+			default:       return thing.toString();
+		}
 	}
 }

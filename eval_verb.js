@@ -20,7 +20,7 @@ function get_verb(verb) {
 var js_verbs = {
 	// Simple stack operations
 		"id"       : function (stack) {} 
-	,   "dup"      : function (stack) { var a = stack.pops(1);       stack.push(...[a,a]);   }
+	,   "dup"      : function (stack) { var a = stack.pops(1);       stack.push(...[j_dup(a),j_dup(a)]);   }
 	,	"swap"     : function (stack) { var [a, b] = stack.pops(2);  stack.push(...[b,a]);   }
 	,   "rollup"   : function (stack) { var [x,y,z] = stack.pops(3); stack.push(...[z,x,y]); }
 	,	"rolldown" : "rollup rollup"
@@ -174,5 +174,17 @@ function j_comp(stack, func) {
 		stack.push(func(a.size, b.size));
 	} else {
 		stack.push(func(a, b));
+	}
+}
+
+function j_dup(thing) {
+	// sigh. can't even use the JSON hack because symbols
+	if (typeof thing === "object") {
+		// recursive clone
+		var tmp = new thing.constructor()
+		for (i in thing) { if (thing.hasOwnProperty(i)) tmp[i] = j_dup(thing[i]); }
+		return tmp;
+	} else {
+		return thing;
 	}
 }
