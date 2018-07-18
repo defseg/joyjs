@@ -124,7 +124,7 @@ function TokenStream(input) {
 	}
 	function read_minus() {
 		word = get_word();
-		if (word.length == 1) return {"type": "op", "value": "-"};
+		if (word.length == 1) return {"type": "atom", "value": "-"};
 		// let's make life easy and assume it's a number. this might be wrong
 		return parse_number(word.slice(1), -1);
 	}
@@ -254,16 +254,16 @@ function parse(input) {
 		return {"type": "term", "value": term};
 	}
 	function parse_defblock() {
-		
+		return {"type": "defblock", "value": "TODO"};
 	}
 
 	// --- "is" helpers ---
 
 	function is_atom() {
-		return ['int', 'float', 'char', 'str', 'bool', 'atom'].indexOf(input.peek()) > -1;
+		return ['int', 'float', 'char', 'str', 'bool', 'atom'].indexOf(input.peek().type) > -1;
 	}
 	function is_noun() {
-		return ['int', 'float', 'char', 'str', 'bool'].indexOf(input.peek()) > -1;
+		return ['int', 'float', 'char', 'str', 'bool'].indexOf(input.peek().type) > -1;
 	}
 	function is_verb() {
 		return input.peek().type === "atom";
@@ -288,4 +288,46 @@ function parse(input) {
 		return input.peek().type === "reserved" &&
 		       ['END','.'].indexOf(input.peek().value) > -1;
 	}
+}
+
+function evaluate(exp, stack, env = false) {
+	// Interprets an AST node and returns the modified stack.
+	// `env` should only be needed for defblocks, which don't exist yet.
+
+	switch (exp.type) {
+		case "noun": // fall through
+		case "set" :
+			// might want to keep track of `klass` (type)
+			stack.push(exp.value);
+			return stack;
+		case "defblock":
+			throw new Error("Definitions aren't implemented yet");
+		case "def":
+			throw new Error("Definitions aren't implemented yet");
+		case "verb":
+			eval_verb(exp.value, stack, env);
+			return stack;
+		case "prog":
+			exp.prog.forEach(prog_exp => evaluate(prog_exp, stack, env));
+			return stack;
+	}
+	console.log("You shouldn't be here!");
+}
+
+function pops(stack, num_args, type_arr = false) {
+	// Pops and returns arguments from `stack`.
+	// Also does some simple type-checking.
+	var args = stack.splice(-num_args);
+	// Make sure we're not out of stack
+	if (args.length !== num_args) throw new Error("Out of stack");
+	if (type_arr) {
+		// make sure the types can be checked
+		if (args.length !== type_arr.length) throw new Error("Bad type_arr");
+		for (var i = 0; i < num_args.length; i++) {
+			if (type_arr[i] === "any") continue;
+			// probably want a dialog or something here later
+			if (type_arr[i].indexOf(args[i]) !== -1) throw new Error("Type error");
+		}
+	}
+	return args;
 }
