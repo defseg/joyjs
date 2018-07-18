@@ -21,10 +21,46 @@ var js_verbs = {
 	,   "or" : (stack => j_bool2(stack, "or" ))
 	,   "xor": (stack => j_bool2(stack, "xor"))
 	,	"not": (stack => !pops(stack, 1, ["boolean"])) // Not implementing `not` on sets since they aren't limited to ints 0..31 here.
-	,	"+": (stack => j_arith2(stack, (a, b) => a + b))
-	,	"-": (stack => j_arith2(stack, (a, b) => a - b))
-	,	"*": (stack => j_arith2(stack, (a, b) => a * b))
-	,	"/": (stack => j_arith2(stack, (a, b) => a / b))
+	,	"+"  : (stack => j_arith2(stack, (a, b) => a + b))
+	,	"-"  : (stack => j_arith2(stack, (a, b) => a - b))
+	,	"*"  : (stack => j_arith2(stack, (a, b) => a * b))
+	,	"/"  : (stack => j_arith2(stack, (a, b) => a / b))
+	,   "rem": (stack => j_arith2(stack, (a, b) => a % b))
+	// div...modf
+	,   "pow": (stack => j_arith2(stack, (a, b) => a ** b))
+	// sin...trunc
+	// localtime...formatf
+	// srand
+	// pred...succ
+	,	"max": (stack => j_arith2(stack, (a, b) => Math.max(a, b)))
+	,	"min": (stack => j_arith2(stack, (a, b) => Math.min(a, b)))
+	// fclose...ftell
+
+	// List stuff
+	,	"unstack": function (stack) {
+			var tmp = stack.pop();
+			stack.splice(0, stack.length);
+			stack.push(...(tmp.map(i => i.value)));
+		}
+	,	"cons": function (stack) { // TODO: should also work with sets?
+			var [car, cdr] = pops(stack, 2, [["any"], ["list"]]);
+			cdr.unshift(car);
+			stack.push(cdr);
+		}
+	// swons
+	,	"first": function (stack) { // Technically don't need to pops here but DRY type checking is nice
+			var thing = pops(stack, 1, [["list"]]);
+			if (thing.length === 0) throw new Error("Can't first or rest an empty list!");
+			console.log(thing);
+			console.log(thing[0]);
+			stack.push(thing[0]);
+		}
+	,	"rest": function (stack) {
+			var thing = pops(stack, 1, [["list"]]);
+			if (thing.length === 0) throw new Error("Can't first or rest an empty list!");
+			thing.shift();
+			stack.push(thing);
+		}
 }
 
 // --- Helper functions ---
