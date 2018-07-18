@@ -26,21 +26,22 @@ var js_verbs = {
 	,	"*"  : (stack => j_arith2(stack, (a, b) => a * b))
 	,	"/"  : (stack => j_arith2(stack, (a, b) => a / b))
 	,   "rem": (stack => j_arith2(stack, (a, b) => a % b))
-	// div...modf
+	// div...chr
+	,	"abs": (stack => j_arith1(stack, a => Math.sign(a)))
+	// acos...modf
 	,   "pow": (stack => j_arith2(stack, (a, b) => a ** b))
 	// sin...trunc
 	// localtime...formatf
 	// srand
-	// pred...succ
+	,	"pred": (stack => j_arith1(stack, a => --a))
+	,	"succ": (stack => j_arith1(stack, a => ++a))
 	,	"max": (stack => j_arith2(stack, (a, b) => Math.max(a, b)))
 	,	"min": (stack => j_arith2(stack, (a, b) => Math.min(a, b)))
 	// fclose...ftell
-
-	// List stuff
 	,	"unstack": function (stack) {
 			var tmp = stack.pop();
 			stack.splice(0, stack.length);
-			pushs(stack, tmp.map(i => i.value));
+			pushs(stack, ...tmp);
 		}
 	,	"cons": function (stack) { // TODO: should also work with sets?
 			var [car, cdr] = pops(stack, 2, [["any"], ["list"]]);
@@ -58,6 +59,15 @@ var js_verbs = {
 			if (thing.length === 0) throw new Error("Can't first or rest an empty list!");
 			thing.shift();
 			pushs(stack, thing);
+		}
+	// compare...enconcat
+	// name...intern
+	// body...small
+	// >=...=
+	// equal...in
+	// integer...file
+	,	"i": function (stack) {
+			evaluate({type: "prog", prog: pops(stack, 1, [["list"]])}, stack);
 		}
 }
 
@@ -124,4 +134,9 @@ function j_bool2(stack, func_name) {
 function j_arith2(stack, func) {
 	pushs(stack, pops(stack, 2, [['number'],['number']]).reduce(func));
 	return stack;
+}
+
+// Arithmetic operations with one argument
+function j_arith1(stack, func) {
+	pushs(stack, func(pops(stack, 1, [['number']])));
 }
