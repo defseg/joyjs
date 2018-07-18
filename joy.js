@@ -8,7 +8,7 @@ function InputStream(input) {
 	}
 	function next() {
 		var chr = input.charAt(pos++);
-		if (chr == "\n") line++, col = 0; else col++;
+		if (chr === "\n") line++, col = 0; else col++;
 		return chr;
 	}
 	function peek() {
@@ -22,21 +22,18 @@ function InputStream(input) {
 	}
 }
 
-function LexerStream(input) {
-	// types:
-	//   simple types:
-	//     int
-	//     float
-	//     char
-	//     bool
-	//   aggregate types:
-	//     list
-	//     string
-	//     set (lol)
-	//   other:
-	//     word (operator, w/e)
-	//     reserved words
-	//     punctuation
+function TokenStream(input) {
+	// Parses an InputStream into tokens.
+	// --- Constant tokens ---
+	// int 		{type: "int"  , value: 123}		"integer constant"
+	// float    {type: "float", value: 1.23}	"float constant"
+	// char 	{type: "char" , value: "a"}		"character constant"
+	// str      {type: "str"  , value: "asdf"}	"string constant"
+	// --- Atomic symbols ---
+	// bool 	{type: "bool" , value: true}	"logical literal" (a type of atomic symbol - may as well handle this here)
+	// atom     {type: "atom" , value: "cons"}  "atomic symbol"
+	// --- Reserved stuff ---
+	// reserved {type: "reserved", value: "{"}  "reserved character" and "reserved word"
 	var current = null;
 	var reserved_words = new Set([
 		"==",
@@ -79,13 +76,16 @@ function LexerStream(input) {
 		return str;
 	}
 	function skip_multi_line_comment() {
-		// TODO: for now, anything between parentheses is a comment
-		// should actually be (* ... *) - fix this later
-		read_while(chr => chr != ")");
 		input.next();
+		if (input.peek() !== "*") input.err("Malformed comment");
+		_skip_multi_line_comment();
+	}
+	function _skip_multi_line_comment() {
+		read_while(chr => chr !== "*");
+		if (input.peek() !== ")") skip_multi_line_comment(); else input.next();
 	}
 	function skip_comment() {
-		read_while(chr => chr != "\n");
+		read_while(chr => chr !== "\n");
 		input.next()
 	}
 
@@ -99,8 +99,8 @@ function LexerStream(input) {
 		if (word == "false") return {"type": "bool", "value": false}
 		// reserved words
 		if (reserved_words.has(word)) return {"type": "reserved", "value": word}
-		// if it's nothing else, it's probably an op
-		return {"type": "op", "value": word}
+		// if it's nothing else, call it an atom
+		return {"type": "atom", "value": word}
 	}
 	function read_string() {
 		// this doesn't follow the reference implementation
@@ -174,17 +174,17 @@ function LexerStream(input) {
 		var chr = input.peek();
 
 		// comments
-		if (chr == "(") { skip_multi_line_comment(); return read_next(); }
-		if (chr == "#") { skip_comment();            return read_next(); }
+		if (chr === "(") { skip_multi_line_comment(); return read_next(); }
+		if (chr === "#") { skip_comment();            return read_next(); }
 		// everything with a distinct first character...
 		// - reserved characters
 		if (reserved_characters.indexOf(chr) > -1) return {"type": "reserved", "value": input.next()};
 		// - strings
-		if (chr == '"')     return read_string();
+		if (chr === '"')     return read_string();
 		// - special-case minus since it can be either an op or the beginning of a number
-		if (chr == '-')     return read_minus();
+		if (chr === '-')     return read_minus();
 		// - characters
-		if (chr == "'")     return read_char();
+		if (chr === "'")     return read_char();
 		// - numbers
 		if (/[0-9]/.test(chr)) return read_number();
 
@@ -194,6 +194,98 @@ function LexerStream(input) {
 	}
 }
 
-function parse(lexer) {
+function parse(input) {
+	// Parses a TokenStream.
+	// Types of thing:
+	// - Factors
+	// - Literals (a type of factor)
+	// - Terms (square bracket 'blocks')
+	// - Defblocks (compound definitions)
+	//   - Definitions
+	return parse_toplevel();
 
+	function parse_toplevel() {
+		var prog = [];
+		while (!input.eof()) {
+			prog.push(parse());
+		}
+		return {"type": "prog", "prog": prog};
+	}
+
+	function parse() {
+		if (is_noun()) {
+			return parse_noun();
+		} else if (is_verb()) {
+			return parse_verb()
+		} else if (is_set()) {
+			return parse_set();
+		} else if (is_term()) {
+			return parse_term();
+		} else if (is_defblock()) {
+			return parse_defblock();
+		}
+		throw new Error("Parser error at ${input.peek()}");
+	}
+
+	// --- Parsers ---
+
+	function parse_noun() {
+		var thing = input.next();
+		return {"type": "noun", "value": thing.value, "klass": thing.type};
+	}
+	function parse_verb() {
+		return {"type": "verb", "value": input.next().value};
+	}
+	function parse_set() {
+		var set = new Set();
+		input.next(); // discard beginning of set
+		while (!is_set_end()) {
+			if (!is_noun()) throw new Error("Sets can only contain nouns");
+			set.add(parse_noun());
+		}
+		input.next(); // discard end of set
+		return {"type": "set", "value": set};
+	}
+	function parse_term() {
+		var term = [];
+		input.next(); // discard beginning of term
+		while (!is_term_end()) term.push(parse());
+		input.next(); // discard end of term
+		return {"type": "term", "value": term};
+	}
+	function parse_defblock() {
+		
+	}
+
+	// --- "is" helpers ---
+
+	function is_atom() {
+		return ['int', 'float', 'char', 'str', 'bool', 'atom'].indexOf(input.peek()) > -1;
+	}
+	function is_noun() {
+		return ['int', 'float', 'char', 'str', 'bool'].indexOf(input.peek()) > -1;
+	}
+	function is_verb() {
+		return input.peek().type === "atom";
+	}
+	function is_set() {
+		return input.peek().type == "reserved" && input.peek().value == "{";
+	}
+	function is_set_end() {
+		return input.peek().type == "reserved" && input.peek().value == "}";
+	}
+	function is_term() {
+		return input.peek().type == "reserved" && input.peek().value == "[";
+	}
+	function is_term_end() {
+		return input.peek().type == "reserved" && input.peek().value == "]";
+	}
+	function is_defblock() {
+		return input.peek().type === 'reserved' && 
+		       ['PRIVATE','PUBLIC','DEFINE','LIBRA','HIDE','IN'].indexOf(input.peek().value) > -1;
+	}
+	function is_defblock_end() {
+		return input.peek().type === "reserved" &&
+		       ['END','.'].indexOf(input.peek().value) > -1;
+	}
 }
