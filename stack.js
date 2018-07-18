@@ -27,5 +27,11 @@ Stack.prototype.pops = function (num_args, type_arr = false) {
 }
 
 Stack.prototype.toString = function () {
-	return "Stack: [" + this.arr.map(i => i.toString()).join(" ") + "]";
+	return "Stack: " + this.arr.map(i => to_actually_good_string(i)).join(" ") + "";
+
+	function to_actually_good_string(thing) {
+		if (thing instanceof Array) return `[${thing.join(",")}]`; else
+		if (typeof thing === "string") return `"${thing}"`; else 
+		return thing.toString();
+	}
 }
