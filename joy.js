@@ -360,8 +360,9 @@ function has(thing, el) {
 
 // For convenience
 
-function joy(str) {
-	return evaluate(parse(TokenStream(InputStream(str))), new Stack());
+function joy(str, stack = false) {
+	if (!stack) stack = new Stack();
+	return evaluate(parse(TokenStream(InputStream(str))), stack);
 }
 function cjoy(str) {
 	return joy(str).toString();
