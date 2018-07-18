@@ -38,7 +38,7 @@ var js_verbs = {
 		}
 
 	// Boolean logic and arithmetic
-	,   "and": (stack => j_bool2(stack, "and"))
+	,   "and": (stack => j_bool2(stack, "and")) 
 	,   "or" : (stack => j_bool2(stack, "or" ))
 	,   "xor": (stack => j_bool2(stack, "xor"))
 	,	"not": (stack => stack.push(!stack.pops(1, [["boolean"]]))) // Not implementing `not` on sets since they aren't limited to ints 0..31 here.
@@ -65,34 +65,48 @@ var js_verbs = {
 			stack.push(...tmp);
 		}
 	,	"cons": function (stack) { // TODO: should also work with sets?
-			var [car, cdr] = stack.pops(2, [["any"], ["list"]]);
+			var [car, cdr] = stack.pops(2, [["any"], ["array"]]);
 			cdr.unshift(car);
 			stack.push(cdr);
 		}
 	// swons
 	,	"first": function (stack) { // Technically don't need to pops here but DRY type checking is nice
-			var thing = stack.pops(1, [["list"]]);
+			var thing = stack.pops(1, [["array"]]);
 			if (thing.length === 0) throw new Error("Can't first or rest an empty list!");
 			stack.push(thing[0]);
 		}
 	,	"rest": function (stack) {
-			var thing = stack.pops(1, [["list"]]);
+			var thing = stack.pops(1, [["array"]]);
 			if (thing.length === 0) throw new Error("Can't first or rest an empty list!");
 			thing.shift();
 			stack.push(thing);
 		}
 	// compare...of
 	,	"size": function (stack) {
-			var thing = stack.pops(1, [["list", "set", "string"]]);
+			var thing = stack.pops(1, [["array", "set", "string"]]);
 			if (j_type(thing) === "set") thing = [...thing];
 			stack.push(thing.length);
 		}
 	// opcase...enconcat
 	// name...intern
 	// body...small
-	// >=...=
+	,	">=": stack => (j_comp(stack, (a, b) => a >= b))
+	,	">" : stack => (j_comp(stack, (a, b) => a >  b))
+	,	"<=": stack => (j_comp(stack, (a, b) => a <= b))
+	,	"<" : stack => (j_comp(stack, (a, b) => a <  b))
+	,	"!=": stack => (j_comp(stack, (a, b) => a != b))
+	,	"=" : stack => (j_comp(stack, (a, b) => a ===b))
 	// equal...in
-	// integer...file
+	,	"integer": stack => j_type(stack.pops(1)) === "number" // TODO: distinguish between ints and floats
+	,	"char"   : function (stack) { var tmp = stack.pops(1); j_type(tmp) === "string" && tmp.length === 1; } // TODO: distinguish between chars and strings
+	,	"logical": stack => j_type(stack.pops(1)) === "boolean"
+	,	"set"    : stack => j_type(stack.pops(1)) === "set"
+	,	"string" : stack => j_type(stack.pops(1)) === "string" 
+	,	"list"   : stack => j_type(stack.pops(1)) === "array"
+	,	"leaf"   : "list not"
+	// user
+	,	"float"  : stack => j_type(stack.pops(1)) === "number"
+	// file
 	,	"i": function (stack) {
 			evaluate({type: "prog", prog: stack.pops(1, [["list"]])}, stack);
 		}
@@ -103,11 +117,12 @@ var js_verbs = {
 			evaluate({type: "prog", prog: prog}, stack);
 			stack.push(tmp);
 		}
-	// app1...times
-	,	"infra": function (stack) {
-			// Have to watch out -- in Joy the *first* element is the top of the stack
-
-		}
+	// app1...cleave
+	,	"branch": "choice i"
+	,	"ifte"  : "[[i] dip] dip branch"
+	// ifinteger...iffile
+	// cond...times
+	// infra...
 }
 
 // --- Stack helper functions ---
@@ -146,4 +161,18 @@ function j_arith2(stack, func) {
 // Arithmetic operations with one argument
 function j_arith1(stack, func) {
 	stack.push(func(stack.pops(1, [['number']])));
+}
+
+// Comparators
+function j_comp(stack, func) {
+	var [a, b] = stack.pops(2);
+	if (j_type(a) !== j_type(b)) throw new Error("Type error");
+
+	if (a.hasOwnProperty("length")) { // Array or string
+		stack.push(func(a.length, b.length));
+	} else if (j_type(a) === "set") {
+		stack.push(func(a.size, b.size));
+	} else {
+		stack.push(func(a, b));
+	}
 }
