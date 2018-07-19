@@ -3,7 +3,21 @@
 	<script src="eval_verb.js"></script>
 	<script src="stack.js"></script>
 	<script src="joy.js"></script>
+	<script src="interface.js"></script>
 </head>
 <body>
+	<textarea id="code_area" rows=20 cols=80></textarea>
+	<button id="run_button">Run</button>
+	<div id="res"></div>
+	<div id="stack"></div>
+
+	<script type="text/javascript">
+		var interface = new JSJ.Interface({
+			code_area : document.getElementById("code_area")
+		,	run_button: document.getElementById("run_button")
+		,	res       : document.getElementById("res")
+		,	stack     : document.getElementById("stack")
+		});
+	</script>
 </body>
 </html>
