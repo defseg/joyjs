@@ -1,6 +1,6 @@
 function eval_verb(verb, stack, env = false) {
 	// Evaluates a verb and modifies the stack.
-	if (js_verbs.hasOwnProperty(verb)) return get_verb(verb)(stack);
+	if (js_verbs.hasOwnProperty(verb)) return get_verb(verb)(stack, env); // if we have to call evaluate from the implementation of the verb, we need env -- e.g. `dip`
 	if (env && env.public && env.public.hasOwnProperty(verb)) 
 		return evaluate({type: "prog", prog: env.public[verb], defs: env.defs}, stack, env)
 	throw new Error(`Unimplemented command ${verb}`);
@@ -18,7 +18,10 @@ function get_verb(verb) {
 // Some of these are defined in JS, some in Joy.
 // Could optimize by preparsing the Joy ones but it's easier to read if we don't.
 var js_verbs = {
+	// TODO put this in the right place
+		"reverse": stack => stack.push(stack.pops(1, [["array","string"]]).reverse()) 
 	// Simple stack operations
+	,
 		"id"       : function (stack) {} 
 	,   "dup"      : function (stack) { var a = stack.pops(1);       stack.push(...[j_dup(a),j_dup(a)]);   }
 	,	"swap"     : function (stack) { var [a, b] = stack.pops(2);  stack.push(...[b,a]);   }
@@ -87,7 +90,12 @@ var js_verbs = {
 			if (j_type(thing) === "set") thing = [...thing];
 			stack.push(thing.length);
 		}
-	// opcase...enconcat
+	// opcase...take
+	,	"concat": function (stack) {
+			var [a, b] = stack.pops(2, [["array", "set", "string"]]);
+			if (j_type(a) !== j_type(b)) throw new Error("Type error");
+			stack.push((j_type(a) === 'set') ? new Set([...a].concat(...b)) : a.concat(b)) 
+		}
 	// name...intern
 	// body...small
 	,	">=": stack => (j_comp(stack, (a, b) => a >= b))
@@ -111,10 +119,10 @@ var js_verbs = {
 			evaluate({type: "prog", prog: stack.pops(1, [["list"]])}, stack);
 		}
 	,	"x": "dup [i] dip"
-	,	"dip": function (stack) {
+	,	"dip": function (stack, env) {
 			var prog = stack.pops(1, [["list"]]);
 			var tmp  = stack.pops(1);
-			evaluate({type: "prog", prog: prog}, stack);
+			evaluate({type: "prog", prog: prog, defs: env}, stack);
 			stack.push(tmp);
 		}
 	// app1...cleave

@@ -322,7 +322,6 @@ function parse(input) {
 
 function evaluate(exp, stack, env = false) {
 	// Interprets an AST node and returns the modified stack.
-	// `env` should only be needed for defblocks, which don't exist yet.
 	switch (j_type(exp)) {
 		case "boolean": // fall through
 		case "number" : // fall through
