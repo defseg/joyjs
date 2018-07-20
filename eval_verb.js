@@ -25,9 +25,9 @@ var js_verbs = {
 		"id"       : function (stack) {} 
 	,   "dup"      : function (stack) { var a = stack.pops(1);       stack.push(...[j_dup(a),j_dup(a)]);   }
 	,	"swap"     : function (stack) { var [a, b] = stack.pops(2);  stack.push(...[b,a]);   }
-	,   "rollup"   : function (stack) { var [x,y,z] = stack.pops(3); stack.push(...[z,x,y]); }
-	,	"rolldown" : "rollup rollup"
-	,	"rotate"   : "rollup swap"
+	,   "rollup"   : "swap [swap] dip"
+	,	"rolldown" : "[swap] dip swap"
+	,	"rotate"   : "swap rolldown"
 	,	"popd"     : "[pop] dip"
 	,	"dupd"     : "[dup] dip"
 	,   "swapd"    : "[swap] dip"
@@ -72,7 +72,7 @@ var js_verbs = {
 			cdr.unshift(car);
 			stack.push(cdr);
 		}
-	// swons
+	,	"swons": "swap cons"
 	,	"first": function (stack) { // Technically don't need to pops here but DRY type checking is nice
 			var thing = stack.pops(1, [["array"]]);
 			if (thing.length === 0) throw new Error("Can't first or rest an empty list!");
@@ -84,18 +84,34 @@ var js_verbs = {
 			thing.shift();
 			stack.push(thing);
 		}
-	// compare...of
+	// compare
+	,	"at": function (stack) { 
+			var [a, i] = stack.pops(2, [["array", "string"], ["number"]]);
+			stack.push(a[i]);
+		}
+	,	"of": "swap at"
 	,	"size": function (stack) {
 			var thing = stack.pops(1, [["array", "set", "string"]]);
 			if (j_type(thing) === "set") thing = [...thing];
 			stack.push(thing.length);
 		}
-	// opcase...take
+	// opcase...case
+	,	"uncons": "dup rest [first] dip"
+	,	"unswons": "swap uncons"
+	,	"drop": function (stack) {
+			var [a, n] = stack.pops(1, [["array", "string"], ["number"]]);
+			stack.push(a.slice(n));
+		}
+	,	"take": function (stack) {
+			var [a, n] = stack.pops(1, [["array", "string"], ["number"]]);
+			stack.push(a.slice(0,n));
+		}
 	,	"concat": function (stack) {
 			var [a, b] = stack.pops(2, [["array", "set", "string"]]);
 			if (j_type(a) !== j_type(b)) throw new Error("Type error");
 			stack.push((j_type(a) === 'set') ? new Set([...a].concat(...b)) : a.concat(b)) 
 		}
+	,	"enconcat": "swapd cons concat"
 	// name...intern
 	// body...small
 	,	">=": stack => (j_comp(stack, (a, b) => a >= b))
@@ -115,8 +131,8 @@ var js_verbs = {
 	// user
 	,	"float"  : stack => j_type(stack.pops(1)) === "number"
 	// file
-	,	"i": function (stack) {
-			evaluate({type: "prog", prog: stack.pops(1, [["list"]])}, stack);
+	,	"i": function (stack, env) {
+			evaluate({type: "prog", prog: stack.pops(1, [["list"]]), defs: env}, stack);
 		}
 	,	"x": "dup [i] dip"
 	,	"dip": function (stack, env) {
