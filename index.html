@@ -1,22 +1,39 @@
 <html>
 <head>
-	<script src="eval_verb.js"></script>
-	<script src="stack.js"></script>
-	<script src="joy.js"></script>
-	<script src="interface.js"></script>
+	<script src="js/parser/input_stream.js"></script>
+	<script src="js/parser/token_stream.js"></script>
+	<script src="js/parser/parser.js"></script> 
+
+	<script src="js/interface/interface.js"></script>
+	<script src="js/interface/state.js"></script>
+
+	<script src="js/interpreter/joy.js"></script>
+	<script src="js/interpreter/stack.js"></script>
+	<script src="js/interpreter/eval_verb.js"></script>
+
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<script src="vendor/jquery.highlight-within-textarea.js"></script> 
+	<link href="vendor/jquery.highlight-within-textarea.css" rel="stylesheet">
+	<style type="text/css">
+		textarea, .hwt-container, .hwt-content {
+			font-family: monospace;
+		}
+	</style>
 </head>
 <body>
 	<textarea id="code_area" rows=20 cols=80></textarea>
 	<button id="run_button">Run</button>
+	<button id="step_button">Step</button>
 	<div id="res"></div>
 	<div id="stack"></div>
 
 	<script type="text/javascript">
 		var interface = new JSJ.Interface({
-			code_area : document.getElementById("code_area")
-		,	run_button: document.getElementById("run_button")
-		,	res       : document.getElementById("res")
-		,	stack     : document.getElementById("stack")
+			code_area: document.getElementById("code_area")
+		,	res      : document.getElementById("res")
+		,	stack    : document.getElementById("stack")
+		,	run_b    : document.getElementById("run_button")
+		,   step_b   : document.getElementById("step_button")
 		});
 	</script>
 </body>
