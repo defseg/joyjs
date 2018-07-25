@@ -2,7 +2,7 @@ function eval_verb(verb, stack, env = false) {
 	// Evaluates a verb and modifies the stack.
 	if (js_verbs.hasOwnProperty(verb)) return get_verb(verb)(stack, env); // if we have to call evaluate from the implementation of the verb, we need env -- e.g. `dip`
 	if (env && env.public && env.public.hasOwnProperty(verb)) 
-		return evaluate({type: "prog", prog: env.public[verb], defs: env}, stack, env)
+		return j_eval(env.public[verb], stack, env);
 	throw new Error(`Unimplemented command ${verb}`);
 }
 
@@ -132,18 +132,31 @@ var js_verbs = {
 	,	"float"  : stack => j_type(stack.pops(1)) === "number"
 	// file
 	,	"i": function (stack, env) {
-			evaluate({type: "prog", prog: stack.pops(1, [["list"]]), defs: env}, stack, env);
+			j_eval(stack.pops(1, [["list"]]), stack, env);
 		}
 	,	"x": "dup [i] dip"
 	,	"dip": function (stack, env) {
 			var prog = stack.pops(1, [["list"]]);
 			var tmp  = stack.pops(1);
-			evaluate({type: "prog", prog: prog, defs: env}, stack, env);
+			j_eval(prog, stack, env);
 			stack.push(tmp);
 		}
 	// app1...cleave
 	,	"branch": "choice i"
-	,	"ifte"  : "[[i] dip] dip branch"
+	,	"ifte"  : function (stack, env) {
+			// ifte : [B] [T] [F] -> ... Executes B. If that yields true, then executes T else executes F.
+			// What this doesn't tell you is that executing B isn't supposed to consume anything on the stack!
+			// Maybe we can rewrite this in Joy using `infra` once that's implemented...
+			var [cond, true_cond, false_cond] = stack.pops(3, [["array"], ["array"], ["array"]]);
+			var tmp_stack = j_dup(stack);
+			var res_stack = j_eval(cond, tmp_stack, env);
+			var res = res_stack.pops(1, [["boolean"]]);
+			if (res) {
+				return j_eval(true_cond, stack, env);
+			} else {
+				return j_eval(false_cond, stack, env);
+			}
+		}
 	// ifinteger...iffile
 	// cond...times
 	// infra...
@@ -199,6 +212,11 @@ function j_comp(stack, func) {
 	} else {
 		stack.push(func(a, b));
 	}
+}
+
+// Various helpers
+function j_eval(prog, stack, env) {
+	return evaluate({type: "prog", prog: prog, defs: env}, stack, env)
 }
 
 function j_dup(thing) {
