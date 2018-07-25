@@ -29,7 +29,6 @@ Interface.prototype.code_changed = function () {
 Interface.prototype.step = function () {
 	if (!this.state) this.state = new JSJ.State(this.code_area.value);
 	$(this.code_area).highlightWithinTextarea({highlight: highlight(this.code_area.value, this.state.loc())});
-	console.log(this.state.loc());
 	this.res.innerText = this.state.step();
 
 	function highlight(txt, loc) {
