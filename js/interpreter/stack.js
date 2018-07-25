@@ -28,13 +28,16 @@ Stack.prototype.pops = function (num_args, type_arr = false) {
 
 Stack.prototype.toString = function () {
 	return "Stack: " + this.arr.map(i => to_actually_good_string(i)).join(" ") + "";
+}
 
-	function to_actually_good_string(thing) {
-		switch (j_type(thing)) {
-			case "array" : return `[${thing.map(i => to_actually_good_string(i)).join(",")}]`;
-			case "string": return `"${thing}"`;
-			case "symbol": return Symbol.keyFor(thing);
-			default:       return thing.toString();
-		}
+// make this public because it's useful for console.log debugging... sigh
+function to_actually_good_string(thing) {
+	switch (j_type(thing)) {
+		case "array" : return `[${thing.map(i => to_actually_good_string(i)).join(",")}]`;
+		case "string": return `"${thing}"`;
+		case "symbol": return Symbol.keyFor(thing);
+		case "object": return thing.value ? to_actually_good_string(thing.value) : 
+								(thing.prog ? to_actually_good_string(thing.prog) : thing.toString());
+		default:       return thing.toString();
 	}
 }

@@ -30,6 +30,9 @@ function parse(input) {
 		} else if (is_defblock()) {
 			return parse_defblock(defs);
 		}
+
+		// TODO:
+		// `.` is either module def access (infix) or end of program.
 		throw new Error(`Parser error at ${input.peek().type} ${input.peek().value}`);
 	}
 

@@ -32,7 +32,6 @@ Interface.prototype.step = function () {
 	this.res.innerText = this.state.step();
 
 	function highlight(txt, loc) {
-		console.log(this.code_area.value.slice(...loc));
 		return loc
 	}
 }})();

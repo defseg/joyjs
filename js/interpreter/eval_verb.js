@@ -2,7 +2,7 @@ function eval_verb(verb, stack, env = false) {
 	// Evaluates a verb and modifies the stack.
 	if (js_verbs.hasOwnProperty(verb)) return get_verb(verb)(stack, env); // if we have to call evaluate from the implementation of the verb, we need env -- e.g. `dip`
 	if (env && env.public && env.public.hasOwnProperty(verb)) 
-		return evaluate({type: "prog", prog: env.public[verb], defs: env.defs}, stack, env)
+		return evaluate({type: "prog", prog: env.public[verb], defs: env}, stack, env)
 	throw new Error(`Unimplemented command ${verb}`);
 }
 
@@ -11,7 +11,7 @@ function get_verb(verb) {
 		case "function": // defined in JS
 			return js_verbs[verb];
 		case "string":   // defined in Joy
-			return (stack, env = false) => joy(js_verbs[verb], stack);
+			return (stack, env = false) => joy(js_verbs[verb], stack, env);
 	}
 }
 
@@ -132,13 +132,13 @@ var js_verbs = {
 	,	"float"  : stack => j_type(stack.pops(1)) === "number"
 	// file
 	,	"i": function (stack, env) {
-			evaluate({type: "prog", prog: stack.pops(1, [["list"]]), defs: env}, stack);
+			evaluate({type: "prog", prog: stack.pops(1, [["list"]]), defs: env}, stack, env);
 		}
 	,	"x": "dup [i] dip"
 	,	"dip": function (stack, env) {
 			var prog = stack.pops(1, [["list"]]);
 			var tmp  = stack.pops(1);
-			evaluate({type: "prog", prog: prog, defs: env}, stack);
+			evaluate({type: "prog", prog: prog, defs: env}, stack, env);
 			stack.push(tmp);
 		}
 	// app1...cleave
