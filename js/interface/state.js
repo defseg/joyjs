@@ -24,6 +24,6 @@ State.prototype.reset = function () {
 State.prototype.step = function () {
 	var ins = this.code_tree.prog[this.code_loc++];
 	if (!ins) throw new Error("Can't execute past end of program");
-	this.stack = evaluate(ins, this.stack);
+	this.stack = evaluate(ins, this.stack, this.code_tree.defs);
 	return this.stack;
 }})();
