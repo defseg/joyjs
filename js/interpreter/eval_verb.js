@@ -170,20 +170,16 @@ var js_verbs = {
 		}
 	// app1...app12
 	// construct
-    ,   "nullary": function (stack, env) {
-            var prog = stack.pops(1, [["list"]]);
-            var tmp_stack = j_dup(stack);
-            var res_stack = j_eval(prog, tmp_stack, env);
-            stack.push(res_stack.pops(1, ["any"]));
-        }
-	,     "unary": function (stack, env) { j_unary(1, stack.pops(1, [["array"]]), stack, env) } 
-    ,    "unary2": function (stack, env) { j_unary(2, stack.pops(1, [["array"]]), stack, env) }
-    ,    "unary3": function (stack, env) { j_unary(3, stack.pops(1, [["array"]]), stack, env) }
-    ,    "unary4": function (stack, env) { j_unary(4, stack.pops(1, [["array"]]), stack, env) }
+    ,   "nullary": (stack, env) => { j_foonary(0, stack, env) }
+	,     "unary": (stack, env) => { j_unary(1, stack, env) }
+    ,    "unary2": (stack, env) => { j_unary(2, stack, env) }
+    ,    "unary3": (stack, env) => { j_unary(3, stack, env) }
+    ,    "unary4": (stack, env) => { j_unary(4, stack, env) }
 	,      "app2": "unary2"
     ,      "app3": "unary3"
     ,      "app4": "unary4"
-	// binary...ternary
+	,    "binary": (stack, env) => { j_foonary(2, stack, env) }
+    ,   "ternary": (stack, env) => { j_foonary(3, stack, env) }
 	// cleave
 	,	"branch": "choice i"
 	,	"ifte"  : function (stack, env) {
@@ -276,10 +272,20 @@ function j_comp(stack, func) {
 }
 
 // unary-n
-function j_unary(n, prog, stack, env) {
+function j_unary(n, stack, env) {
+    var prog = stack.pops(1, [["array"]])
     var params = stack.apops(n);
     var res = params.map(param => j_eval(prog, stack.fpush(param), env).pops(1));
     stack.push(...res);
+}
+
+// n-ary
+function j_foonary(n, stack, env) {
+    var prog = stack.pops(1, [["array"]]);
+    var tmp_stack = j_dup(stack);
+    var res_stack = j_eval(prog, tmp_stack, env);
+    stack.pops(n);
+    stack.push(res_stack.pops(1,));
 }
 
 // Various helpers
