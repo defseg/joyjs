@@ -18,10 +18,9 @@ function get_verb(verb) {
 // Some of these are defined in JS, some in Joy.
 // Could optimize by preparsing the Joy ones but it's easier to read if we don't.
 var js_verbs = {
-	// TODO put this in the right place
-		"reverse": stack => stack.push(stack.pops(1, [["array","string"]]).reverse()) 
+	// library operation - TODO move this
+	//	"reverse": stack => stack.push(stack.pops(1, [["array","string"]]).reverse()) 
 	// Simple stack operations
-	,
 		"id"       : function (stack) {} 
 	,   "dup"      : function (stack) { var a = stack.pops(1);       stack.push(...[j_dup(a),j_dup(a)]);   }
 	,	"swap"     : function (stack) { var [a, b] = stack.pops(2);  stack.push(...[b,a]);   }
@@ -48,13 +47,32 @@ var js_verbs = {
 	,	"+"  : (stack => j_arith2(stack, (a, b) => a + b))
 	,	"-"  : (stack => j_arith2(stack, (a, b) => a - b))
 	,	"*"  : (stack => j_arith2(stack, (a, b) => a * b))
-	,	"/"  : (stack => j_arith2(stack, (a, b) => a / b))
+	,	"/"  : (stack => j_arith2(stack, (a, b) => a / b)) // Not equal to Thun's `/`, since JS doesn't have separate int and float types
+	,   "//" : (stack => j_arith2(stack, (a, b) => Math.floor(a / b))) // Floor integer division - not in Thun's Joy. Could add int/float distinction but won't yet. Might take this out later.
 	,   "rem": (stack => j_arith2(stack, (a, b) => a % b))
-	// div...chr
-	,	"abs": (stack => j_arith1(stack, a => Math.sign(a)))
-	// acos...modf
+	,	"div": "[dup] dip dup rollup rem [//] dip"
+	// sign...chr
+	,	"abs": (stack => j_arith1(stack, Math.sign))
+	,  "acos": (stack => j_arith1(stack, Math.acos))
+	,  "asin": (stack => j_arith1(stack, Math.asin))
+	,  "atan": (stack => j_arith1(stack, Math.atan))
+	, "atan2": (stack => j_arith2(stack, Math.atan2)) // is this right?
+	,  "ceil": (stack => j_arith1(stack, Math.ceil))
+	,   "cos": (stack => j_arith1(stack, Math.cos))
+	,  "cosh": (stack => j_arith1(stack, Math.cosh))
+	,   "exp": (stack => j_arith1(stack, a => Math.e ** a))
+	, "floor": (stack => j_arith1(stack, Math.floor))
+	// frexp...ldexp
+	,   "log": (stack => j_arith1(stack, Math.log)) // log base e
+	, "log10": (stack => j_arith1(stack, Math.log10)) // oddly, Joy doesn't have any-base log. maybe it's in a library? TODO
+	// modf
 	,   "pow": (stack => j_arith2(stack, (a, b) => a ** b))
-	// sin...trunc
+	,	"sin": (stack => j_arith1(stack, Math.sin))
+	,  "sinh": (stack => j_arith1(stack, Math.sinh))
+	,  "sqrt": (stack => j_arith1(stack, Math.sqrt))
+	,	"tan": (stack => j_arith1(stack, Math.tan))
+	,  "tanh": (stack => j_arith1(stack, Math.tanh))
+	, "trunc": (stack => j_arith1(stack, Math.floor))
 	// localtime...formatf
 	// srand
 	,	"pred": (stack => j_arith1(stack, a => --a))
@@ -92,8 +110,7 @@ var js_verbs = {
 	,	"of": "swap at"
 	,	"size": function (stack) {
 			var thing = stack.pops(1, [["array", "set", "string"]]);
-			if (j_type(thing) === "set") thing = [...thing];
-			stack.push(thing.length);
+			stack.push(j_size(thing));
 		}
 	// opcase...case
 	,	"uncons": "dup rest [first] dip"
@@ -113,7 +130,13 @@ var js_verbs = {
 		}
 	,	"enconcat": "swapd cons concat"
 	// name...intern
-	// body...small
+	// body...null
+	,	"small": function (stack) {
+			var a = stack.pops(1, [["array", "set", "string", "number"]]);
+			var tmp = a;
+			if (j_type(a) !== "number") tmp = j_size(a);
+			stack.push(tmp === 0 || tmp === 1);
+		}
 	,	">=": stack => (j_comp(stack, (a, b) => a >= b))
 	,	">" : stack => (j_comp(stack, (a, b) => a >  b))
 	,	"<=": stack => (j_comp(stack, (a, b) => a <= b))
@@ -141,7 +164,12 @@ var js_verbs = {
 			j_eval(prog, stack, env);
 			stack.push(tmp);
 		}
-	// app1...cleave
+	// app1...app12
+	// construct
+	// nullary...unary4
+	// app2...app4
+	// binary...ternary
+	// cleave
 	,	"branch": "choice i"
 	,	"ifte"  : function (stack, env) {
 			// ifte : [B] [T] [F] -> ... Executes B. If that yields true, then executes T else executes F.
@@ -158,8 +186,22 @@ var js_verbs = {
 			}
 		}
 	// ifinteger...iffile
-	// cond...times
-	// infra...
+	// cond...while
+	// linrec...condlinrec
+	// step...times
+	// infra
+	// primrec
+	// filter...all
+	// treestep...treegenrec
+	// help...setecho
+	,	"gc": "id" // we don't have to worry about garbage collection - JS will handle that
+	// system...getenv
+	// argv...argc
+	// get
+	// put...putchars
+	// include
+	// abort
+	// quit
 }
 
 // --- Stack helper functions ---
@@ -217,6 +259,10 @@ function j_comp(stack, func) {
 // Various helpers
 function j_eval(prog, stack, env) {
 	return evaluate({type: "prog", prog: prog, defs: env}, stack, env)
+}
+
+function j_size(thing) {
+	return j_type(thing) === "set" ? thing.size : thing.length;
 }
 
 function j_dup(thing) {
