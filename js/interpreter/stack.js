@@ -7,6 +7,11 @@ Stack.prototype.push = function (...thing) {
 	this.arr.unshift(...thing);
 }
 
+Stack.prototype.fpush = function (...thing) {
+	// "Functional push" - return a new stack with the contents of array `thing` prepended
+	return new Stack(thing.concat(this.arr));
+}
+
 Stack.prototype.pops = function (num_args, type_arr = false) {
 	// Pops `num_args` items.
 	// Returns the item if `num_args == 1`; otherwise returns an array.
@@ -25,6 +30,12 @@ Stack.prototype.pops = function (num_args, type_arr = false) {
 		}
 	}
 	return num_args === 1 ? args[0] : args;
+}
+
+Stack.prototype.apops = function (num_args, type_arr = false) {
+	// "Array pops" - guarantees that the thing returned is an array.
+	var tmp = this.pops(num_args, type_arr);
+	return num_args === 1 ? [tmp] : tmp;
 }
 
 Stack.prototype.toString = function () {

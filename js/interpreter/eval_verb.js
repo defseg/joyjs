@@ -176,8 +176,13 @@ var js_verbs = {
             var res_stack = j_eval(prog, tmp_stack, env);
             stack.push(res_stack.pops(1, ["any"]));
         }
-	// nullary...unary4
-	// app2...app4
+	,     "unary": function (stack, env) { j_unary(1, stack.pops(1, [["array"]]), stack, env) } 
+    ,    "unary2": function (stack, env) { j_unary(2, stack.pops(1, [["array"]]), stack, env) }
+    ,    "unary3": function (stack, env) { j_unary(3, stack.pops(1, [["array"]]), stack, env) }
+    ,    "unary4": function (stack, env) { j_unary(4, stack.pops(1, [["array"]]), stack, env) }
+	,      "app2": "unary2"
+    ,      "app3": "unary3"
+    ,      "app4": "unary4"
 	// binary...ternary
 	// cleave
 	,	"branch": "choice i"
@@ -268,6 +273,13 @@ function j_comp(stack, func) {
 	} else {
 		stack.push(func(a, b));
 	}
+}
+
+// unary-n
+function j_unary(n, prog, stack, env) {
+    var params = stack.apops(n);
+    var res = params.map(param => j_eval(prog, stack.fpush(param), env).pops(1));
+    stack.push(...res);
 }
 
 // Various helpers
