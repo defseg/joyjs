@@ -1,6 +1,8 @@
 function eval_verb(verb, stack, env = false) {
 	// Evaluates a verb and modifies the stack.
-	if (js_verbs.hasOwnProperty(verb)) return get_verb(verb)(stack, env); // if we have to call evaluate from the implementation of the verb, we need env -- e.g. `dip`
+
+	// If we have to call evaluate from the implementation of the verb, we need env -- e.g. `dip`
+	if (js_verbs.hasOwnProperty(verb)) return get_verb(verb)(stack, env); 
 	if (env && env.public && env.public.hasOwnProperty(verb)) 
 		return j_eval(env.public[verb], stack, env);
 	throw new Error(`Unimplemented command ${verb}`);
@@ -154,6 +156,8 @@ var js_verbs = {
 	// user
 	,	"float"  : stack => j_type(stack.pops(1)) === "number"
 	// file
+
+    // Combinators
 	,	"i": function (stack, env) {
 			j_eval(stack.pops(1, [["list"]]), stack, env);
 		}
@@ -166,6 +170,12 @@ var js_verbs = {
 		}
 	// app1...app12
 	// construct
+    ,   "nullary": function (stack, env) {
+            var prog = stack.pops(1, [["list"]]);
+            var tmp_stack = j_dup(stack);
+            var res_stack = j_eval(prog, tmp_stack, env);
+            stack.push(res_stack.pops(1, ["any"]));
+        }
 	// nullary...unary4
 	// app2...app4
 	// binary...ternary
@@ -187,6 +197,13 @@ var js_verbs = {
 		}
 	// ifinteger...iffile
 	// cond...while
+
+	// Recursive combinators
+	,	  "linrec": ""
+	,	 "tailrec": "[] linrec"
+	,	  "binrec": ""
+	,	  "genrec": ""
+	, "condlinrec": ""
 	// linrec...condlinrec
 	// step...times
 	// infra
@@ -203,9 +220,6 @@ var js_verbs = {
 	// abort
 	// quit
 }
-
-// --- Stack helper functions ---
-// Eventually this will be refactored as a proper object, but until then...
 
 // --- Helper functions ---
 

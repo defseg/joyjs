@@ -3,7 +3,8 @@ function Stack(arr) {
 }
 
 Stack.prototype.push = function (...thing) {
-	this.arr.push(...thing);
+	// in Joy, the front of the stack is the 'top', so use shift/unshift instead of push/pop
+	this.arr.unshift(...thing);
 }
 
 Stack.prototype.pops = function (num_args, type_arr = false) {
@@ -15,7 +16,7 @@ Stack.prototype.pops = function (num_args, type_arr = false) {
 	//   [["boolean", "set"], "any"]	or [["boolean", "set"], ["any"]]
 	// In either case, the first item has to be a boolean or a set, but the second item can be anything.
 
-	var args = this.arr.splice(-num_args);
+	var args = this.arr.splice(0,num_args);
 	if (args.length !== num_args) throw new Error("Out of stack");
 	if (type_arr) {
 		for (var i = 0; i < num_args; i++) {
