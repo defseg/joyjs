@@ -5,6 +5,7 @@ function test(a, b, c = false) {
 
 // Basic objects
 test("1"    , [1]                );
+test("1.5"  , [1.5]              );
 test("1 2"  , [2, 1]             );
 test("true" , [true]             );
 test("false", [false]            );
@@ -41,6 +42,27 @@ test("pop"                  , [], true                          );
 
 // Basic stack manipulation + d
 // TODO
+
+// Choice
+test("true    1 2 choice", [1]);
+test("false   1 2 choice", [2]);
+// Tested against Thun's implementation - this is how it works
+test("3       1 2 choice", [1]); // things that are truthy: nonzero numbers...
+test("-1      1 2 choice", [1]); // ...including negative ones,
+test("{1}     1 2 choice", [1]); // ...nonempty sets...
+test("[dup]   1 2 choice", [1]); // ...nonempty arrays...
+test('"foo"   1 2 choice', [1]); // ...and strings...
+test('""      1 2 choice', [1]); // ...including empty ones!
+test("0       1 2 choice", [2]); // things that are falsey: zero...
+test("{}      1 2 choice", [2]); // ...empty sets...
+test("[]      1 2 choice", [2]); // ...and empty arrays
+test("[false] 1 2 choice", [1]); // Here are some things that are truthy but might not look it
+test("[[]]    1 2 choice", [1]);
+test("'0      1 2 choice", [1]);
+test('"0"     1 2 choice', [1]);
+test('"[]"    1 2 choice', [1]);
+test('"false" 1 2 choice', [1]);
+
 
 // Basic errors
 test("dup"      , [], true);

@@ -32,7 +32,7 @@
 var failed = 0;
 
 function _test(code, _expected, should_error = false) {
-	res = do_it(code);
+	var res = do_it(code);
 	var expected = new Stack(_expected);
 
 	if (res instanceof Error) {
@@ -40,7 +40,7 @@ function _test(code, _expected, should_error = false) {
 		return;
 	}
 
-	if (_.isEqual(res.stack().arr, expected.arr)) write(code, es(expected), true); else write(code, es(expected), false);
+	if (_.isEqual(res.stack().arr, expected.arr)) write(code, es(expected), true); else write(code, es(expected), es(res.stack()));
 
 	function es(e) {
 		// stringify a stack without the Stack: stuff
@@ -50,9 +50,9 @@ function _test(code, _expected, should_error = false) {
 
 function do_it(code) {
 	var evaluator = new Evaluator();
-	evaluator.init(make(code));
 
 	try {
+		evaluator.init(make(code));
 		while (!evaluator.all_done()) evaluator.step();
 	} catch(error) {
 		return error;
