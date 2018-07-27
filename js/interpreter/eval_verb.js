@@ -38,6 +38,11 @@ Evaluator.prototype.js_verbs = {
 		this.stack().push(maybe ? true_cond : false_cond);
 	}
 
+,	"+": function () {_arith2(this.stack(), (a, b) => {return b + a}) }
+,	"-": function () {_arith2(this.stack(), (a, b) => {return b - a}) }
+,	"*": function () {_arith2(this.stack(), (a, b) => {return b * a}) }
+,	"/": function () {_arith2(this.stack(), (a, b) => {return b / a}) }
+
 ,	"i": function () {
 		this.push_prog(this.stack().pops(1, [["array"]]));
 	}
@@ -47,4 +52,11 @@ Evaluator.prototype.js_verbs = {
 		var tmp       = this.stack().pops(1);
 		this.push_ctx(prog, this.ctx()._data, evaluator => evaluator.stack().push(tmp));
 	}
+}
+
+// Helper functions - TODO make this less messy
+
+// Arithmetic
+function _arith2(stack, func) {
+	stack.push(stack.pops(2, [['number'],['number']]).reduce(func));
 }

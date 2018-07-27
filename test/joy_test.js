@@ -62,12 +62,40 @@ test("'0      1 2 choice", [1]);
 test('"0"     1 2 choice', [1]);
 test('"[]"    1 2 choice', [1]);
 test('"false" 1 2 choice', [1]);
+test("        1 2 choice", [], true);
+test("0       1   choice", [], true);
+
+// Boolean operators behave strangely in Joy.
+// For integers, `xor` seems to test inequality.
+// `and`, `or`, and `not` use 0 = falsey, everything else = truthy.
+// TODO add tests and implement this - maybe read the source of Thun's interpreter to see what's going on
+// TODO Boolean operators on sets
+// TODO implement these at all - low priority, so I'll hold off for now
+// test("true  true  and", [true] );
+// test("true  false and", [false]);
+// test("false true  and", [false]);
+// test("false false and", [false]);
+// test("true  true  or ", [true] );
+// test("true  false or ", [true] );
+// test("false true  or ", [true] );
+// test("false false or ", [false]);
+// test("true  true  xor", [false]);
+// test("true  false xor", [true] );
+// test("false true  xor", [true] );
+// test("false false xor", [false]);
+// test("true  not", [false]);
+// test("false not", [true ]);
+
+// Arithmetic
+test("1 2  +", [3]);
+test("2 1  -", [1]);
+test("1 2  -",[-1]);
+test("2 3  *", [6]);
+test("2 -3 *",[-6]);
+test("4 2  /", [2]);
 
 
 // Basic errors
-test("dup"      , [], true);
-test("pop"      , [], true);
-test("1 pop dup", [], true);
 test("an_instruction_that_does_not_and_will_never_exist", [], true);
 
 // Terms and i
