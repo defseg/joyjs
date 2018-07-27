@@ -33,7 +33,7 @@ Interface.prototype.code_changed = function () {
 
 Interface.prototype.step = function () {
 	if (!this.ready) this.init();
-	this.evaluator.try_step();
+	this.try_step();
 	this.res.innerText  = this.evaluator.stack();
 	this.inst.innerText = this.evaluator.prog();
 	this.context.innerText = this.evaluator.ctx()._name;
@@ -51,6 +51,7 @@ Interface.prototype.try_step = function () {
 	} catch(error) {
 		// change this later
 		alert(error);
+		throw error;
 	}
 }
 

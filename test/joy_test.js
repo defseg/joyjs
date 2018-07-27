@@ -152,5 +152,5 @@ test("1 2 [dup] dip", [2, 1, 1]);
 test("5 [null] [succ] [dup pred] [i *] genrec", [120]);
 
 // Some simple programs
-test("DEFINE factorial == [0 =] [pop 1] [dup 1 - factorial *] ifte. 5 factorial")
+test("DEFINE factorial == [0 =] [pop 1] [dup 1 - factorial *] ifte. 5 factorial", [120])
 test("5 [[pop 0 =] [pop pop 1] [[dup 1 -] dip i *] ifte] [dup cons] swap concat dup cons i", [120])

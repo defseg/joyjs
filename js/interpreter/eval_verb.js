@@ -1,7 +1,7 @@
 Evaluator.prototype.eval_verb = function (verb) {
     if (this.js_verbs.hasOwnProperty(verb)) return this.get_verb(verb).bind(this)();
     if (this.env && this.env.public && this.env.public.hasOwnProperty(verb)) 
-        return this.j_eval(env.public[verb]);
+        return this.push_prog(this.env.public[verb]);
     throw new Error(`Unimplemented command ${verb}`);
 }
 

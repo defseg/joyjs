@@ -4,6 +4,7 @@ function Evaluator() {
 Evaluator.prototype.init = function (prog) {
 	this.ctxs = new Stack([new Context("main")]);
 	this.push_prog(prog); 
+	this.env = prog.defs;
 }
 
 Evaluator.prototype.step = function () {
