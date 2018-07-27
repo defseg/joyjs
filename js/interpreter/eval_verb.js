@@ -32,10 +32,7 @@ Evaluator.prototype.js_verbs = {
 ,   "choice": function () {
         var [false_cond, true_cond, maybe] = this.stack().pops(3);
         // Joy's truthy/falsey values don't quite map to JS's.
-        if (maybe === "") maybe = true;
-        if (maybe instanceof Set   && maybe.size   === 0) maybe = false;
-        if (maybe instanceof Array && maybe.length === 0) maybe = false;
-        this.stack().push(maybe ? true_cond : false_cond);
+        this.stack().push(j_truthy(maybe) ? true_cond : false_cond);
     }
 
 ,   "+"  : function () {_arith2(this.stack(), (a, b) => b + a)}
@@ -80,7 +77,56 @@ Evaluator.prototype.js_verbs = {
         var tmp = this.stack().pops(1, [["array"]]);
         this.stack().replace(tmp);
     }
-
+,   "cons": function () {
+        // TODO can you really cons into a set?
+        var [agg, thing] = this.stack().pops(2, [["array", "string", "set"], "any"]);
+        var res;
+        switch (j_type(agg)) {
+            case "array" : res = [thing].concat(agg);               break;
+            case "string": res = thing + agg;                       break;
+            case "set"   : res = new Set([thing].concat([...agg])); break;
+            default:
+                throw new Error(`Can't cons ${thing} onto ${agg}`);
+        }
+        this.stack().push(res);
+    }
+,   "swons": "swap cons"
+,   "first": function () {
+        var thing = this.stack().pops(1, [["array", "string"]]);
+        this.stack().push(thing[0]);
+    }
+,   "rest": function () {
+        var thing = this.stack().pops(1, [["array", "string"]]);
+        if (thing.length === 0) throw new Error("Can't call rest on an empty aggregate");
+        this.stack().push(thing.slice(1));
+    }
+// compare
+,   "at": function () {
+        var [i, agg] = this.stack().pops(2, [["number"], ["array", "string"]]);
+        this.stack().push(agg[i]);
+    }
+,   "of": "swap at"
+// size
+// opcase...case
+,   "uncons": "dup rest [first] dip"
+,   "unswons": "swap uncons"
+// drop...take
+,   "concat": function () {
+        // TODO sets?
+        var [b, a] = this.stack().pops(2, [["array","string"],["array","string"]]); 
+        if (j_type(a) !== j_type(b)) throw new Error(`Type error: can't concat ${a} and ${b}`);
+        this.stack().push(j_type(a) === "set" ? new Set([...a].concat(...b)) : a.concat(b))
+    }
+,   "enconcat": "swapd cons concat"
+// name...intern
+// body
+// null...small
+,   ">=": function () {(_comp(this.stack(), (a, b) => a >= b)) }
+,   ">" : function () {(_comp(this.stack(), (a, b) => a >  b)) }
+,   "<=": function () {(_comp(this.stack(), (a, b) => a <= b)) }
+,   "<" : function () {(_comp(this.stack(), (a, b) => a <  b)) }
+,   "!=": function () {(_comp(this.stack(), (a, b) => a != b)) }
+,   "=" : function () {(_comp(this.stack(), (a, b) => a ===b)) }
 ,   "i": function () {
         this.push_prog(this.stack().pops(1, [["array"]]));
     }
@@ -88,7 +134,18 @@ Evaluator.prototype.js_verbs = {
 ,   "dip": function () {
         var prog      = this.stack().pops(1, [["array"]]);
         var tmp       = this.stack().pops(1);
-        this.push_ctx(prog, this.ctx()._data, evaluator => evaluator.stack().push(tmp));
+        this.push_ctx(prog, this.ctx()._data, "dip", evaluator => evaluator.stack().push(tmp));
+    }
+,   "ifte": function () {
+        var [false_cond, true_cond, cond] = this.stack().pops(3, [["array"], ["array"], ["array"]]);
+        var cond_stack = j_dup(this.stack());
+        this.push_ctx(cond, cond_stack, "ifte_cond", evaluator => {
+            if (j_truthy(cond_stack.pops(1))) {
+                evaluator.push_ctx(true_cond, evaluator.ctx()._data, "ifte_true");
+            } else {
+                evaluator.push_ctx(false_cond, evaluator.ctx()._data, "ifte_false");
+            }
+        })
     }
 }
 
@@ -100,4 +157,18 @@ function _arith2(stack, func) {
 }
 function _arith1(stack, func) {
     stack.push(func(stack.pops(1, [['number']])));
+}
+
+// Comparators
+function _comp(stack, func) {
+    var [b, a] = stack.pops(2);
+    if (j_type(a) !== j_type(b)) throw new Error("Type error");
+
+    if (a.hasOwnProperty("length")) { // Array or string
+        stack.push(func(a.length, b.length));
+    } else if (j_type(a) === "set") {
+        stack.push(func(a.size, b.size));
+    } else {
+        stack.push(func(a, b));
+    }
 }

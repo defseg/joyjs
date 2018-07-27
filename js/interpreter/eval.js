@@ -2,7 +2,7 @@ function Evaluator() {
 }
 
 Evaluator.prototype.init = function (prog) {
-	this.ctxs = new Stack([new Context()]);
+	this.ctxs = new Stack([new Context("main")]);
 	this.push_prog(prog); 
 }
 
@@ -21,6 +21,7 @@ Evaluator.prototype.step = function () {
 	if (this.all_done()) return; // TODO what should this return?
 
 	var value = j_value(this.prog().pops(1));
+
 	switch (j_type(value)) {
 		case "boolean": // fall through
 		case "number" : // fall through
@@ -55,8 +56,8 @@ Evaluator.prototype.ctx = function () {
 	return this.ctxs.peek();
 }
 
-Evaluator.prototype.push_ctx = function (prog, data, callback) {
-	this.ctxs.push(new Context(callback))
+Evaluator.prototype.push_ctx = function (prog, data, name, callback) {
+	this.ctxs.push(new Context(name, callback))
 	this.push_prog(prog);
 	this.ctx()._data = data;
 }

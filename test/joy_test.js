@@ -1,3 +1,5 @@
+// TODO: make sure the tests are actually comprehensive
+
 joy_tests = [];
 function test(a, b, c = false) {
     joy_tests.push(() => _test(a, b, c));
@@ -117,6 +119,25 @@ test("12   exp", [Math.E ** 12]);
 // List operations
 test("1 [2 3] unstack", [2, 3]);
 
+test("1 [] cons", [[1]]);
+test("1 2 3 [] cons cons cons", [[1, 2, 3]])
+test("1 2 3 [] cons cons [] cons cons", [[1, [2, 3]]])
+test("'a \"bcd\" cons", ["abcd"]);
+test("1 {} cons", [new Set([1])])
+test("[] 1 cons", [], true)
+test("[] 1 swons", [[1]]);
+test("[1 2 3] first", [1]);
+test('"123" first', ["1"]);
+test("1 first", [], true)
+test("1 2 3 [] cons cons cons rest", [[2, 3]]);
+test('"123" rest', ["23"])
+test("[2 3] 1 at", [3]);
+test("1 [2 3] of", [3]);
+
+// TODO: uncons, unswons
+
+test("1 [] cons 2 [] cons concat", [[1, 2]])
+
 // Basic errors
 test("an_instruction_that_does_not_and_will_never_exist", [], true);
 
@@ -129,3 +150,7 @@ test("1 2 [dup] dip", [2, 1, 1]);
 
 // Recursive combinators
 test("5 [null] [succ] [dup pred] [i *] genrec", [120]);
+
+// Some simple programs
+test("DEFINE factorial == [0 =] [pop 1] [dup 1 - factorial *] ifte. 5 factorial")
+test("5 [[pop 0 =] [pop pop 1] [[dup 1 -] dip i *] ifte] [dup cons] swap concat dup cons i", [120])

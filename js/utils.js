@@ -7,7 +7,6 @@ function make(str) {
 	return parse(TokenStream(InputStream(str)));
 }
 
-
 function j_type(thing) {
 	if (typeof thing !== "object") return typeof thing;
 	return thing.constructor.name.toLowerCase();
@@ -59,4 +58,12 @@ function j_has_value(thing) {
 
 function j_value(thing) {
 	return (thing.value === undefined) ? thing : thing.value
+}
+
+// New 
+function j_truthy(maybe) {
+	if (maybe === "") return true;
+    if (maybe instanceof Set   && maybe.size   === 0) return false;
+    if (maybe instanceof Array && maybe.length === 0) return false;
+    return !!maybe;
 }

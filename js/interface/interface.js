@@ -1,8 +1,9 @@
 (function () { if (typeof JSJ === "undefined") window.JSJ = {};
 
 var Interface = JSJ.Interface = function (objs) {
+	// TODO: build all these divs dynamically
 	params = ["code_area", "res", "inst", "stack",
-	          "run_b", "step_b"];
+	          "context", "run_b", "step_b"];
 	params.forEach(p => this[p] = objs[p]);
 	
 	this.build_listeners();
@@ -35,6 +36,7 @@ Interface.prototype.step = function () {
 	this.evaluator.step();
 	this.res.innerText  = this.evaluator.stack();
 	this.inst.innerText = this.evaluator.prog();
+	this.context.innerText = this.evaluator.ctx()._name;
 }
 
 Interface.prototype.init = function () {

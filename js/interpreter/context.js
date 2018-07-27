@@ -1,6 +1,7 @@
-function Context(callback) {
+function Context(name, callback) {
 	this._prog = new Stack();
 	this._data = new Stack();
+	this._name = name;
 	this.callback = callback;
 }
 
