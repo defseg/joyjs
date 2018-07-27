@@ -1,7 +1,7 @@
 function evaluate(exp, stack, env = false) {
 	// Interprets an AST node and returns the modified stack.
 	var value = get_value(exp);
-	// console.log(`Value: ${typeof value === 'symbol' ? Symbol.keyFor(value) : to_actually_good_string(value)}\n${stack}`);
+	console.log(`Value: ${typeof value === 'symbol' ? Symbol.keyFor(value) : to_actually_good_string(value)}\n${stack}`);
 	switch (j_type(value)) {
 		case "boolean": // fall through
 		case "number" : // fall through

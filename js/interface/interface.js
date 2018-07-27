@@ -9,6 +9,9 @@ var Interface = JSJ.Interface = function (objs) {
 
 	// init this now
 	$(this.code_area).highlightWithinTextarea({highlight: null});
+
+	// init evaluator
+	this.evaluator = new Evaluator();
 }
 
 Interface.prototype.build_listeners = function () {
@@ -18,8 +21,10 @@ Interface.prototype.build_listeners = function () {
 }
 
 Interface.prototype.run_code = function () {
-	var res = cjoy(this.code_area.value);
-	this.res.innerText = res;
+	var code = this.code_area.value;
+	this.evaluator.init(make(code));
+	while (!this.evaluator.done()) { this.evaluator.step() }
+	this.res.innerText = this.evaluator.stack();
 }
 
 Interface.prototype.code_changed = function () {
