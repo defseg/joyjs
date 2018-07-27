@@ -1,10 +1,10 @@
 (function () { if (typeof JSJ === "undefined") window.JSJ = {};
 
 var Interface = JSJ.Interface = function (objs) {
-	params = ["code_area", "res", "stack",
+	params = ["code_area", "res", "inst", "stack",
 	          "run_b", "step_b"];
 	params.forEach(p => this[p] = objs[p]);
-	this.state = false;
+	
 	this.build_listeners();
 
 	// init this now
@@ -21,22 +21,26 @@ Interface.prototype.build_listeners = function () {
 }
 
 Interface.prototype.run_code = function () {
-	var code = this.code_area.value;
-	this.evaluator.init(make(code));
-	while (!this.evaluator.done()) { this.evaluator.step() }
+	this.init();
+	while (!this.evaluator.all_done()) { this.evaluator.step() }
 	this.res.innerText = this.evaluator.stack();
 }
 
 Interface.prototype.code_changed = function () {
-	this.state = false;
+	this.ready = false;
 }
 
 Interface.prototype.step = function () {
-	if (!this.state) this.state = new JSJ.State(this.code_area.value);
-	$(this.code_area).highlightWithinTextarea({highlight: highlight(this.code_area.value, this.state.loc())});
-	this.res.innerText = this.state.step();
+	if (!this.ready) this.init();
+	this.evaluator.step();
+	this.res.innerText  = this.evaluator.stack();
+	this.inst.innerText = this.evaluator.prog();
+}
 
-	function highlight(txt, loc) {
-		return loc
-	}
-}})();
+Interface.prototype.init = function () {
+	var code = this.code_area.value;
+	this.evaluator.init(make(code));
+	this.ready = true;
+}
+
+})();

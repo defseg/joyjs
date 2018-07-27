@@ -40,6 +40,10 @@ Stack.prototype.empty = function () {
 	return this.arr.length === 0;
 }
 
+Stack.prototype.small = function () {
+	return this.arr.length <= 1;
+}
+
 Stack.prototype.apops = function (num_args, type_arr = false) {
 	// "Array pops" - guarantees that the thing returned is an array.
 	var tmp = this.pops(num_args, type_arr);

@@ -5,8 +5,8 @@
 	<script src="js/parser/parser.js"></script> 
 
 	<script src="js/interface/interface.js"></script>
-	<script src="js/interface/state.js"></script>
 
+	<script src="js/interpreter/context.js"></script>
 	<script src="js/interpreter/eval.js"></script>
 	<script src="js/interpreter/stack.js"></script>
 	<script src="js/interpreter/eval_verb.js"></script>
@@ -18,6 +18,12 @@
 		textarea, .hwt-container, .hwt-content {
 			font-family: monospace;
 		}
+		#res::before {
+			content: "Data ";
+		}
+		#inst::before {
+			content: "Program ";
+		}
 	</style>
 </head>
 <body>
@@ -25,12 +31,14 @@
 	<button id="run_button">Run</button>
 	<button id="step_button">Step</button>
 	<div id="res"></div>
+	<div id="inst"></div>
 	<div id="stack"></div>
 
 	<script type="text/javascript">
 		var interface = new JSJ.Interface({
 			code_area: document.getElementById("code_area")
 		,	res      : document.getElementById("res")
+		,   inst     : document.getElementById("inst")
 		,	stack    : document.getElementById("stack")
 		,	run_b    : document.getElementById("run_button")
 		,   step_b   : document.getElementById("step_button")

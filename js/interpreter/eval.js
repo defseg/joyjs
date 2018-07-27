@@ -2,13 +2,25 @@ function Evaluator() {
 }
 
 Evaluator.prototype.init = function (prog) {
-	this.prog      = new Stack();
-	this.data_meta = new Stack([new Stack()]);
+	this.ctxs = new Stack([new Context()]);
 	this.push_prog(prog); 
 }
 
 Evaluator.prototype.step = function () {
-	var value = get_value(this.prog.pops(1));
+	if (this.curr_done()) {
+		// if the current context is out of prog,
+		// - store its callback, which should take the evaluator as an argument
+		// - pop it from the context stack
+		// - and then call the callback, so it can modify the new context
+		//   (needed for dip, app`n`, infra, etc.)
+		let callback = this.ctx().callback;
+		this.remove_ctx();
+		if (callback) callback(this);
+	}
+
+	if (this.all_done()) return; // TODO what should this return?
+
+	var value = get_value(this.prog().pops(1));
 	switch (j_type(value)) {
 		case "boolean": // fall through
 		case "number" : // fall through
@@ -32,15 +44,45 @@ Evaluator.prototype.push_val = function (data) {
 
 Evaluator.prototype.push_prog = function (prog) {
 	// TODO: env
-	this.prog.push(...prog.prog);
+	if (j_type(prog) === "object") {
+		this.prog().push(...prog.prog);
+	} else { // for now, assume it's an array. TODO?
+		this.prog().push(...prog);
+	}
+}
+
+Evaluator.prototype.ctx = function () {
+	return this.ctxs.peek();
+}
+
+Evaluator.prototype.push_ctx = function (prog, data, callback) {
+	this.ctxs.push(new Context(callback))
+	this.push_prog(prog);
+	this.ctx()._data = data;
+}
+
+Evaluator.prototype.dup_stack = function () {
+	return j_dup(this.stack());
+}
+
+Evaluator.prototype.prog = function () {
+	return this.ctx().prog();
 }
 
 Evaluator.prototype.stack = function () {
-	return this.data_meta.peek();
+	return this.ctx().data();
 }
 
-Evaluator.prototype.done = function () {
-	return this.prog.empty();
+Evaluator.prototype.curr_done = function () {
+	return this.prog().empty();
+}
+
+Evaluator.prototype.all_done = function () {
+	return this.ctxs.small() && this.curr_done();
+}
+
+Evaluator.prototype.remove_ctx = function () {
+	if (!this.ctxs.small()) this.ctxs.pops(1);
 }
 
 // TODO rewrite this
