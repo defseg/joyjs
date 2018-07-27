@@ -23,7 +23,7 @@ Interface.prototype.build_listeners = function () {
 
 Interface.prototype.run_code = function () {
 	this.init();
-	while (!this.evaluator.all_done()) { this.evaluator.step() }
+	while (!this.evaluator.all_done()) { this.try_step() }
 	this.res.innerText = this.evaluator.stack();
 }
 
@@ -33,7 +33,7 @@ Interface.prototype.code_changed = function () {
 
 Interface.prototype.step = function () {
 	if (!this.ready) this.init();
-	this.evaluator.step();
+	this.evaluator.try_step();
 	this.res.innerText  = this.evaluator.stack();
 	this.inst.innerText = this.evaluator.prog();
 	this.context.innerText = this.evaluator.ctx()._name;
@@ -43,6 +43,15 @@ Interface.prototype.init = function () {
 	var code = this.code_area.value;
 	this.evaluator.init(make(code));
 	this.ready = true;
+}
+
+Interface.prototype.try_step = function () {
+	try {
+		this.evaluator.step();
+	} catch(error) {
+		// change this later
+		alert(error);
+	}
 }
 
 })();
