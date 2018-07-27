@@ -25,8 +25,8 @@ Stack.prototype.pops = function (num_args, type_arr = false) {
 	if (args.length !== num_args) throw new Error("Out of stack");
 	if (type_arr) {
 		for (var i = 0; i < num_args; i++) {
-			if (has(type_arr[i]), "any" || type_arr[i] === "any") continue;
-			if (!has(type_arr[i]), j_type(args[i])) throw new Error("Type error");
+			if (has(type_arr[i], "any") || type_arr[i] === "any") continue;
+			if (!has(type_arr[i], j_type(args[i]))) throw new Error("Type error");
 		}
 	}
 	return num_args === 1 ? args[0] : args;
