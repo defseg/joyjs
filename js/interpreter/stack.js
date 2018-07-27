@@ -54,6 +54,12 @@ Stack.prototype.toString = function () {
 	return "Stack: " + this.arr.map(i => to_actually_good_string(i)).join(" ") + "";
 }
 
+Stack.prototype.replace = function (new_arr) {
+	// for `unstack`
+	this.arr.splice(0, this.arr.length);
+	new_arr.forEach(a => this.arr.push(j_value(a)))
+}
+
 // make this public because it's useful for console.log debugging... sigh
 function to_actually_good_string(thing) {
 	switch (j_type(thing)) {

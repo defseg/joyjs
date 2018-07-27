@@ -93,7 +93,29 @@ test("1 2  -",[-1]);
 test("2 3  *", [6]);
 test("2 -3 *",[-6]);
 test("4 2  /", [2]);
+// TODO: `rem`, `div`, added floor division instruction `//`
+// TODO: failure tests 
 
+// More math
+test("12  sign", [1]);
+test("-12 sign", [-1]);
+test("0   sign", [0]);
+test("123  abs", [123]);
+test("-123 abs", [123]);
+test("-0   abs", [0]);
+test("0   acos", [Math.acos(0)]);
+test("0   asin", [Math.asin(0)]);
+test("0   atan", [Math.atan(0)]);
+test("0 2 atan2",[Math.atan2(2,0)]);
+// TODO: ceil
+test("123  cos", [Math.cos(123)]);
+test("12  cosh", [Math.cosh(12)]);
+test("12   exp", [Math.E ** 12]);
+// TODO: floor...trunc
+// TODO: failure tests
+
+// List operations
+test("1 [2 3] unstack", [2, 3]);
 
 // Basic errors
 test("an_instruction_that_does_not_and_will_never_exist", [], true);
