@@ -1,0 +1,80 @@
+<html>
+<head>
+
+<script src="../js/parser/input_stream.js"></script>
+<script src="../js/parser/token_stream.js"></script>
+<script src="../js/parser/parser.js"></script> 
+
+<script src="../js/interpreter/context.js"></script>
+<script src="../js/interpreter/eval.js"></script>
+<script src="../js/interpreter/stack.js"></script>
+<script src="../js/interpreter/eval_verb.js"></script>
+
+<!-- need isEqual -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore-min.js"></script>
+
+<script src="joy_test.js"></script>
+
+<style type="text/css">
+	.pass {
+		background-color: #91FD95;
+	}
+	.fail {
+		background-color: #FD9A91;
+	}
+</style>
+
+</head>
+<body>
+<div id="results"></div>
+
+<script type="text/javascript">
+var failed = 0;
+
+function _test(code, _expected, should_error = false) {
+	res = do_it(code);
+	var expected = new Stack(_expected);
+
+	if (res instanceof Error) {
+		write(code, should_error ? "(Error)" : expected, should_error ? true : res);
+		return;
+	}
+
+	if (_.isEqual(res.stack().arr, expected.arr)) write(code, es(expected), true); else write(code, es(expected), false);
+
+	function es(e) {
+		// stringify a stack without the Stack: stuff
+		return e.toString().slice(7);
+	}
+}
+
+function do_it(code) {
+	var evaluator = new Evaluator();
+	evaluator.init(make(code));
+
+	try {
+		while (!evaluator.all_done()) evaluator.step();
+	} catch(error) {
+		return error;
+	}
+
+	return evaluator;
+}
+
+function write(code, expected, res) {
+	var resDiv = document.createElement('div');
+	if (res === true) {
+		resDiv.className = 'pass';
+		resDiv.innerText = `Test passed: ${code} = ${expected}`;
+	} else {
+		resDiv.className = 'fail';
+		resDiv.innerText = `Test failed: ${code} = ${expected}: ${res}`;
+	}
+	document.getElementById("results").appendChild(resDiv);
+}
+
+joy_tests.forEach(test => test());
+</script>
+
+</body>
+</html>
