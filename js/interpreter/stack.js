@@ -60,8 +60,16 @@ function to_actually_good_string(thing) {
 		case "array" : return `[${thing.map(i => to_actually_good_string(i)).join(",")}]`;
 		case "string": return `"${thing}"`;
 		case "symbol": return Symbol.keyFor(thing);
-		case "object": return thing.value ? to_actually_good_string(thing.value) : 
+		case "object": return j_has_value(thing) ? to_actually_good_string(j_value(thing)) : 
 								(thing.prog ? to_actually_good_string(thing.prog) : thing.toString());
 		default:       return thing.toString();
 	}
+}
+
+function j_has_value(thing) {
+	return !(thing.value === undefined)
+}
+
+function j_value(thing) {
+	return (thing.value === undefined) ? thing : thing.value
 }
