@@ -8,7 +8,6 @@ Evaluator.prototype.init = function (prog) {
 }
 
 Evaluator.prototype.step = function () {
-	console.log(j_dup(this.prog));
 	var value = get_value(this.prog.pops(1));
 	switch (j_type(value)) {
 		case "boolean": // fall through

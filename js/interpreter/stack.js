@@ -4,14 +4,12 @@ function Stack(arr) {
 
 Stack.prototype.push = function (...thing) {
 	// In Thun's implementation, the front of the stack is the 'top'.
-	// But it's easier to do the reverse.
-	// Beware! If you 'fix' this, you'll break arithmetic.
-	this.arr.push(...thing);
+	this.arr.unshift(...thing);
 }
 
 Stack.prototype.fpush = function (...thing) {
 	// "Functional push" - return a new stack with the contents of array `thing` prepended
-	return new Stack(thing.concat(this.arr));
+	return new Stack(this.arr.concat(thing));
 }
 
 Stack.prototype.pops = function (num_args, type_arr = false) {
@@ -23,7 +21,7 @@ Stack.prototype.pops = function (num_args, type_arr = false) {
 	//   [["boolean", "set"], "any"]	or [["boolean", "set"], ["any"]]
 	// In either case, the first item has to be a boolean or a set, but the second item can be anything.
 
-	var args = this.arr.splice(-num_args);
+	var args = this.arr.splice(0,num_args);
 	if (args.length !== num_args) throw new Error("Out of stack");
 	if (type_arr) {
 		for (var i = 0; i < num_args; i++) {
@@ -35,7 +33,7 @@ Stack.prototype.pops = function (num_args, type_arr = false) {
 }
 
 Stack.prototype.peek = function () {
-	return this.arr[this.arr.length - 1];
+	return this.arr[0];
 }
 
 Stack.prototype.empty = function () {
