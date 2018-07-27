@@ -19,7 +19,7 @@ Evaluator.prototype.js_verbs = {
 	"id"  : function () {}
 ,	"dup" : function () { var a = this.stack().pops(1); this.stack().push(...[j_dup(a),j_dup(a)]) }
 ,	"swap": function () { var [a, b] = this.stack().pops(2); this.stack().push(...[b,a]) }
-,	"rollup": "swap [swap] dip"
+,	"rollup"   : "swap [swap] dip"
 ,	"rolldown" : "[swap] dip swap"
 ,	"rotate"   : "swap rolldown"
 ,	"popd"     : "[pop] dip"
@@ -28,6 +28,20 @@ Evaluator.prototype.js_verbs = {
 ,   "rollupd"  : "[rollup] dip"
 ,   "rolldownd": "[rolldown] dip"
 ,	"rotated"  : "[rotate] dip"
+,	"pop"      : function () { this.stack().pops(1) }
+,	"choice": function () {
+		var [false_cond, true_cond, maybe] = this.stack().pops(3);
+		// Joy's truthy/falsey values don't quite map to JS's.
+		if (maybe === "") maybe = true;
+		if (maybe instanceof Set   && maybe.size   === 0) maybe = false;
+		if (maybe instanceof Array && maybe.length === 0) maybe = false;
+		this.stack().push(maybe ? true_cond : false_cond);
+	}
+
+,	"i": function () {
+		this.push_prog(this.stack().pops(1, [["array"]]));
+	}
+
 ,   "dip": function () {
 		var prog      = this.stack().pops(1, [["array"]]);
 		var tmp       = this.stack().pops(1);
