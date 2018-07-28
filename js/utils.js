@@ -33,7 +33,7 @@ function j_dup(thing) {
 	if (typeof thing === "object") {
 		// recursive clone
 		var tmp = new thing.constructor()
-		for (i in thing) { if (thing.hasOwnProperty(i)) tmp[i] = j_dup(thing[i]); }
+		for (var i in thing) { if (thing.hasOwnProperty(i)) tmp[i] = j_dup(thing[i]); }
 		return tmp;
 	} else {
 		return thing;
