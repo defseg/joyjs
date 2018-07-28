@@ -8,18 +8,24 @@ Evaluator.prototype.init = function (prog) {
 }
 
 Evaluator.prototype.step = function () {
+	var was_done = false;
 	if (this.curr_done()) {
 		// if the current context is out of prog,
 		// - store its callback, which should take the evaluator as an argument
 		// - pop it from the context stack
 		// - and then call the callback, so it can modify the new context
 		//   (needed for dip, app`n`, infra, etc.)
+		// - after all that, return instead of evaluating the next instruction
+		//   so the first instruction on the new context doesn't immediately evaluate
+		//   and we can see it in step
 		let callback = this.ctx().callback;
 		this.remove_ctx();
 		if (callback) callback(this);
+		was_done = true;
 	}
 
 	if (this.all_done()) return; // TODO what should this return?
+	if (was_done) return;
 
 	var value = j_value(this.prog().pops(1));
 

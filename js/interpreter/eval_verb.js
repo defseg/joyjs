@@ -120,6 +120,16 @@ Evaluator.prototype.js_verbs = {
 ,   "enconcat": "swapd cons concat"
 // name...intern
 // body
+,   "null": function () {
+        var thing = this.stack().pops(1, [["array", "string", "set", "number"]]);
+        if (j_type(thing) === "number") {
+            this.stack().push(thing === 0);
+        } else if (j_type(thing) === "set") {
+            this.stack().push(thing.size === 0);
+        } else {
+            this.stack().push(thing.length === 0);
+        }
+    }
 // null...small
 ,   ">=": function () {(_comp(this.stack(), (a, b) => a >= b)) }
 ,   ">" : function () {(_comp(this.stack(), (a, b) => a >  b)) }
@@ -144,6 +154,27 @@ Evaluator.prototype.js_verbs = {
                 evaluator.push_ctx(true_cond, evaluator.ctx()._data, "ifte_true");
             } else {
                 evaluator.push_ctx(false_cond, evaluator.ctx()._data, "ifte_false");
+            }
+        })
+    }
+
+,   "genrec"    : function () {
+        var [r2, r1, t, cond] = this.stack().pops(4, [["array"], ["array"], ["array"], ["array"]]);
+        console.log("cond"); console.log(cond);
+        console.log("t"); console.log(t);
+        console.log("r1"); console.log(r1);
+        console.log("r2"); console.log(r2);
+        var cond_stack = j_dup(this.stack());
+
+        this.push_ctx(cond, cond_stack, "genrec_cond", evaluator => {
+            if (j_truthy(cond_stack.pops(1))) {
+                evaluator.push_prog(t);
+            } else {
+                // This is wrong.
+                // Should be:
+                // Else executes R1 and then [[B] [T] [R1] [R2] genrec] R2.
+                evaluator.push_prog([[cond, t, r1, r2, Symbol.for("genrec")]].concat(r2));
+                evaluator.push_prog(r1);
             }
         })
     }
