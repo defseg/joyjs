@@ -1,3 +1,5 @@
+if (typeof Evaluator === "undefined") Evaluator = function () {};
+
 Evaluator.prototype.eval_verb = function (verb) {
     if (this.js_verbs.hasOwnProperty(verb)) return this.get_verb(verb).bind(this)();
     if (this.env && this.env.public && this.env.public.hasOwnProperty(verb)) 
@@ -190,11 +192,11 @@ Evaluator.prototype.js_verbs = {
         var tmp_stack2     = this.dup_stack();
         this.stack().pops(1);
         this.push_ctx(prog1, tmp_stack1, "cleave1", evaluator => {
-            evaluator.push_one(tmp_stack1.pops(1));
+            evaluator.push_ctx(prog2, tmp_stack2, "cleave2", evaluator => {
+                    evaluator.stack().push_one(tmp_stack2.pops(1));
+                    evaluator.stack().push_one(tmp_stack1.pops(1));
+            });
         });
-        this.push_ctx(prog2, tmp_stack2, "cleave2", evaluator => {
-            evaluator.push_one(tmp_stack2.pops(1));
-        })
     }
 ,   "ifte": function () {
         var [false_cond, true_cond, cond] = this.stack().pops(3, [["array"], ["array"], ["array"]]);

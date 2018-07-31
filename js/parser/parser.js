@@ -39,34 +39,28 @@ function parse(input) {
 	// --- Parsers ---
 
 	function parse_noun() {
-		var loc = input.peek().loc;
 		return make();
 	}
 	function parse_verb() {
 		// TODO: will need private symbol tables eventually
-		var loc = input.peek().loc;
 		return make(Symbol.for);
 	}
 	function parse_set() {
-		var start_loc = input.peek().loc[0];
 		var set = new Set();
 		input.next(); // discard beginning of set
 		while (!is_set_end()) {
 			if (!is_noun()) throw new Error("Sets can only contain nouns");
 			set.add(parse_noun());
 		}
-		var end_loc = input.peek().loc[1];
 		input.next(); // discard end of set
-		return make_composite(set, start_loc, end_loc);
+		return make_composite(set);
 	}
 	function parse_term() {
-		var start_loc = input.peek().loc[0];
 		var term = [];
 		input.next(); // discard beginning of term
 		while (!is_term_end()) term.push(parse(input));
-		var end_loc = input.peek().loc[1];
 		input.next(); // discard end of term
-		return make_composite(term, start_loc, end_loc);
+		return make_composite(term);
 	}
 	function parse_defblock(public_defs) {
 		if (["PRIVATE","HIDE"].indexOf(input.peek().value) > -1) 
@@ -94,13 +88,11 @@ function parse(input) {
 
 	function make(func = null) {
 		var next      = input.next();
-		var loc_start = next.loc[0];
 		var thing     = next.value;
-		var loc_end   = next.loc[1];
 		if (func) thing = func(thing);
 		return thing;
 	}
-	function make_composite(thing, loc_start, loc_end) {
+	function make_composite(thing) {
 		return thing;
 	}
 

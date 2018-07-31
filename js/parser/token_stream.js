@@ -13,7 +13,6 @@ function TokenStream(input) {
 
 	// TODO: floats don't work right yet
 	var current = null;
-	var old_loc = 0;
 	var reserved_words = new Set([
 		"==",
 		"MODULE",
@@ -47,7 +46,7 @@ function TokenStream(input) {
 	// --- UTILITIES --- 
 
 	function make_token(type, value) {
-		return {type: type, value: value, loc: [old_loc, input.loc()]};
+		return {type: type, value: value};
 	}
 
 	function is_whitespace(chr) {
@@ -155,8 +154,7 @@ function TokenStream(input) {
 	function read_next() {
 		read_while(is_whitespace);
 		if (input.eof()) return null;
-
-		old_loc = input.loc();
+		
 		var chr = input.peek();
 
 		// comments

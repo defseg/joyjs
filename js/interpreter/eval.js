@@ -1,5 +1,4 @@
-function Evaluator() {
-}
+function Evaluator() {}
 
 Evaluator.prototype.init = function (prog) {
 	this.ctxs = new Stack([new Context("main")]);

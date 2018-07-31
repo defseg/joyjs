@@ -4,7 +4,6 @@ function InputStream(input) {
 		next: next,
 		peek: peek,
 		eof:  eof,
-		loc:  loc,
 		err:  err
 	}
 	function next() {
@@ -17,9 +16,6 @@ function InputStream(input) {
 	}
 	function eof() {
 		return peek() == "";
-	}
-	function loc() {
-		return pos;
 	}
 	function err(msg) {
 		throw new Error(msg + ` (${line}:${col})`);
