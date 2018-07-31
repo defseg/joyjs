@@ -168,8 +168,8 @@ test("[1 2 3 4 5] [rest null] [first] [rest] tailrec", [5]);
 
 // infra
 test("[false [not] infra dup rest cons] [not] infra dup rest cons", 
-	[[true, [Symbol.for("not")], Symbol.for("infra"), Symbol.for("dup"), Symbol.for("rest"), Symbol.for("cons")]
-	, [Symbol.for("not")], Symbol.for("infra"), Symbol.for("dup"), Symbol.for("rest"), Symbol.for("cons")]);
+	[[[true, [Symbol.for("not")], Symbol.for("infra"), Symbol.for("dup"), Symbol.for("rest"), Symbol.for("cons")]
+	, [Symbol.for("not")], Symbol.for("infra"), Symbol.for("dup"), Symbol.for("rest"), Symbol.for("cons")]]);
 
 
 // Some simple programs

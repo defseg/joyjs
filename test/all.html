@@ -1,0 +1,34 @@
+<html>
+<head>
+<script src="all.js"></script>
+<script src="../js/interpreter/eval_verb.js"></script>
+<style type="text/css">
+.pass {
+	background-color: #91FD95;
+}
+.fail {
+	background-color: #FD9A91;
+}
+</style>
+</head>
+<body>
+<div id="res">
+</div>
+<script type="text/javascript">
+var verbs = Evaluator.prototype.js_verbs;
+var theDiv = document.getElementById("res");
+for (let i in all) {
+	if (!all.hasOwnProperty(i)) continue;
+
+	var cmdDiv = document.createElement("div");
+	if (verbs.hasOwnProperty(i)) {
+		cmdDiv.className = "pass";
+	} else {
+		cmdDiv.className = "fail";
+	}
+	cmdDiv.innerHTML = i;
+	theDiv.appendChild(cmdDiv);
+}
+</script>
+</body>
+</html>
