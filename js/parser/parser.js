@@ -98,10 +98,10 @@ function parse(input) {
 		var thing     = next.value;
 		var loc_end   = next.loc[1];
 		if (func) thing = func(thing);
-		return {value: thing, loc: [loc_start, loc_end]}
+		return thing;
 	}
 	function make_composite(thing, loc_start, loc_end) {
-		return {value: thing, loc: [loc_start, loc_end]}
+		return thing;
 	}
 
 	// --- "is" helpers ---

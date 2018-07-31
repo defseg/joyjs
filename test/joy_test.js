@@ -141,12 +141,22 @@ test("1 [] cons 2 [] cons concat", [[1, 2]])
 // Basic errors
 test("an_instruction_that_does_not_and_will_never_exist", [], true);
 
-// Terms and i
+// Terms, i, x, dip
 test("[1] i"    , [1]);
 test("[[1] i] i", [1]);
-
-// dip
+test("1 [] cons x", [[1], 1]);
+test("1 x", [], true)
 test("1 2 [dup] dip", [2, 1, 1]);
+
+// n-aries, cleave
+// TODO: what if the function pushes more than one element onto the stack?
+test("1 2 [+] nullary", [3, 2, 1]);
+test("1 2 [+] unary", [3, 1]);
+test("1 2 [+] binary", [3]);
+test("1 2 3 [+] binary", [5, 1]);
+test("1 2 3 [+] ternary", [5]);
+test("1 2 3 4 [+] ternary", [7, 1]);
+test("1 [2 +] [3 +] cleave", [4, 3]);
 
 // Recursive combinators
 test("5 [null] [succ] [dup pred] [i *] genrec", [120]);
@@ -155,6 +165,12 @@ test("5 [null] [succ] [dup pred] [i *] genrec", [120]);
 // TODO: verify these
 test("6 [null] [succ] [dup pred] [*] linrec", [720])
 test("[1 2 3 4 5] [rest null] [first] [rest] tailrec", [5]);
+
+// infra
+test("[false [not] infra dup rest cons] [not] infra dup rest cons", 
+	[[true, [Symbol.for("not")], Symbol.for("infra"), Symbol.for("dup"), Symbol.for("rest"), Symbol.for("cons")]
+	, [Symbol.for("not")], Symbol.for("infra"), Symbol.for("dup"), Symbol.for("rest"), Symbol.for("cons")]);
+
 
 // Some simple programs
 test("DEFINE factorial == [0 =] [pop 1] [dup 1 - factorial *] ifte. 5 factorial", [120])

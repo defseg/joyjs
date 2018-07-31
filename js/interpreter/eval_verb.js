@@ -34,7 +34,13 @@ Evaluator.prototype.js_verbs = {
         // Joy's truthy/falsey values don't quite map to JS's.
         this.stack().push(j_truthy(maybe) ? true_cond : false_cond);
     }
-
+// or
+// xor
+// and
+,   "not": function () {
+        var thing = this.stack().pops(1, [["boolean"]]);
+        this.stack().push(!thing);
+    }
 ,   "+"  : function () {_arith2(this.stack(), (a, b) => b + a)}
 ,   "-"  : function () {_arith2(this.stack(), (a, b) => b - a)}
 ,   "*"  : function () {_arith2(this.stack(), (a, b) => b * a)}
@@ -140,11 +146,55 @@ Evaluator.prototype.js_verbs = {
 ,   "i": function () {
         this.push_prog(this.stack().pops(1, [["array"]]));
     }
-
+,   "x": "dup [i] dip"
 ,   "dip": function () {
         var prog      = this.stack().pops(1, [["array"]]);
         var tmp       = this.stack().pops(1);
         this.push_ctx(prog, this.ctx()._data, "dip", evaluator => evaluator.stack().push(tmp));
+    }
+,   "nullary": function () {
+        // TODO refactor these
+        var prog      = this.stack().pops(1, [["array"]]);
+        var tmp_stack = j_dup(this.stack());
+        this.push_ctx(prog, tmp_stack, "nullary", evaluator => {
+            evaluator.stack().push(tmp_stack.pops(1));
+        });
+    }
+,   "unary": function () {
+        var prog      = this.stack().pops(1, [["array"]]);
+        var tmp_stack = j_dup(this.stack());
+        this.push_ctx(prog, tmp_stack, "unary", evaluator => {
+            evaluator.stack().pops(1);
+            evaluator.stack().push(tmp_stack.pops(1));
+        });
+    }
+,   "binary": function () {
+        var prog      = this.stack().pops(1, [["array"]]);
+        var tmp_stack = j_dup(this.stack());
+        this.push_ctx(prog, tmp_stack, "binary", evaluator => {
+            evaluator.stack().pops(2);
+            evaluator.stack().push(tmp_stack.pops(1));
+        })
+    }
+,   "ternary": function () {
+        var prog      = this.stack().pops(1, [["array"]]);
+        var tmp_stack = j_dup(this.stack());
+        this.push_ctx(prog, tmp_stack, "binary", evaluator => {
+            evaluator.stack().pops(3);
+            evaluator.stack().push(tmp_stack.pops(1));
+        })
+    }
+,   "cleave": function () {
+        var [prog1, prog2] = this.stack().pops(2, [["array"], ["array"]]);
+        var tmp_stack1     = this.dup_stack();
+        var tmp_stack2     = this.dup_stack();
+        this.stack().pops(1);
+        this.push_ctx(prog1, tmp_stack1, "cleave1", evaluator => {
+            evaluator.push_one(tmp_stack1.pops(1));
+        });
+        this.push_ctx(prog2, tmp_stack2, "cleave2", evaluator => {
+            evaluator.push_one(tmp_stack2.pops(1));
+        })
     }
 ,   "ifte": function () {
         var [false_cond, true_cond, cond] = this.stack().pops(3, [["array"], ["array"], ["array"]]);
@@ -194,6 +244,14 @@ Evaluator.prototype.js_verbs = {
                 evaluator.push_prog([[cond, t, r1, r2, Symbol.for("genrec")]].concat(r2));
                 evaluator.push_prog(r1);
             }
+        })
+    }
+,   "infra": function () {
+        var prog = this.stack().pops(1, [["array"]]);
+        var stack = new Stack(this.stack().pops(1, [["array"]]));
+
+        this.push_ctx(prog, stack, "infra", evaluator => {
+            evaluator.stack().push_one(stack.arr);
         })
     }
 }

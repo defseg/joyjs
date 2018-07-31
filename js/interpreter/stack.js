@@ -7,6 +7,10 @@ Stack.prototype.push = function (...thing) {
 	this.arr.unshift(...thing);
 }
 
+Stack.prototype.push_one = function (thing) {
+	this.arr.unshift(thing);
+}
+
 Stack.prototype.fpush = function (...thing) {
 	// "Functional push" - return a new stack with the contents of array `thing` prepended
 	return new Stack(this.arr.concat(thing));

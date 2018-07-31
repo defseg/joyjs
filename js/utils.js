@@ -43,7 +43,7 @@ function j_dup(thing) {
 // From stack.js
 function to_actually_good_string(thing) {
 	switch (j_type(thing)) {
-		case "array" : return `[${thing.map(i => to_actually_good_string(i)).join(",")}]`;
+		case "array" : return `[${thing.map(i => to_actually_good_string(i)).join(" ")}]`;
 		case "string": return `"${thing}"`;
 		case "symbol": return Symbol.keyFor(thing);
 		case "object": return j_has_value(thing) ? to_actually_good_string(j_value(thing)) : 
