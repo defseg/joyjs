@@ -157,22 +157,40 @@ Evaluator.prototype.js_verbs = {
             }
         })
     }
-
-,   "genrec"    : function () {
+,   "linrec": function () {
         var [r2, r1, t, cond] = this.stack().pops(4, [["array"], ["array"], ["array"], ["array"]]);
-        console.log("cond"); console.log(cond);
-        console.log("t"); console.log(t);
-        console.log("r1"); console.log(r1);
-        console.log("r2"); console.log(r2);
+        var cond_stack = j_dup(this.stack());
+
+        this.push_ctx(cond, cond_stack, "linrec_cond", evaluator => {
+            if (j_truthy(cond_stack.pops(1))) {
+                evaluator.push_prog(t);
+            } else {
+                evaluator.push_prog([cond, t, r1, r2, Symbol.for("linrec")].concat(r2));
+                evaluator.push_prog(r1);
+            }
+        });
+    }
+,   "tailrec": function () {
+        // Could implement as `[] linrec` but this gives a nicer display in step
+        var [r1, t, cond] = this.stack().pops(3, [["array"], ["array"], ["array"]]);
+        var cond_stack = j_dup(this.stack());
+        this.push_ctx(cond, cond_stack, "tailrec_cond", evaluator => {
+            if (j_truthy(cond_stack.pops(1))) {
+                evaluator.push_prog(t);
+            } else {
+                evaluator.push_prog([cond, t, r1, Symbol.for("tailrec")]);
+                evaluator.push_prog(r1);
+            }
+        });
+    }
+,   "genrec": function () {
+        var [r2, r1, t, cond] = this.stack().pops(4, [["array"], ["array"], ["array"], ["array"]]);
         var cond_stack = j_dup(this.stack());
 
         this.push_ctx(cond, cond_stack, "genrec_cond", evaluator => {
             if (j_truthy(cond_stack.pops(1))) {
                 evaluator.push_prog(t);
             } else {
-                // This is wrong.
-                // Should be:
-                // Else executes R1 and then [[B] [T] [R1] [R2] genrec] R2.
                 evaluator.push_prog([[cond, t, r1, r2, Symbol.for("genrec")]].concat(r2));
                 evaluator.push_prog(r1);
             }
