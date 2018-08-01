@@ -150,7 +150,7 @@ test("an_instruction_that_does_not_and_will_never_exist", [], true);
 // Terms, i, x, dip
 test("[1] i"    , [1]);
 test("[[1] i] i", [1]);
-test("1 [] cons x", [[1], 1]);
+test("1 [] cons x", [1, [1]]);
 test("1 x", [], true)
 test("1 2 [dup] dip", [2, 1, 1]);
 
@@ -165,7 +165,7 @@ test("1 2 3 4 [+] ternary", [7, 1]);
 test("1 [2 +] [3 +] cleave", [4, 3]);
 
 // map
-test("[1 2 3] [1 +] map", [2, 3, 4]);
+test("[1 2 3] [1 +] map", [[2, 3, 4]]);
 test("[1 2 3] [+] map", [], true);
 test("1 2 3 [1 +] map", [], true);
 

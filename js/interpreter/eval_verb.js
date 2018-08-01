@@ -102,6 +102,7 @@ Evaluator.prototype.js_verbs = {
         this.stack().push(res);
     }
 ,   "swons": "swap cons"
+,   "swoncat": "swap concat" // not in the manual, but it's there
 ,   "first": function () {
         var thing = this.stack().pops(1, [["array", "string"]]);
         this.stack().push(thing[0]);
