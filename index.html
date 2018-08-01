@@ -26,16 +26,28 @@
 		#inst::before {
 			content: "Program ";
 		}
+
+		#context > span {
+			padding-left: 5px;
+			padding-right: 5px;
+			border-left: 1px solid black;
+			border-top: 1px solid black;
+			border-top-left-radius: 4px;
+			border-top-right-radius: 4px;
+		}
+		#context > span:last-of-type {
+			border-right: 1px solid black;
+		}
 	</style>
 </head>
 <body>
 	<textarea id="code_area" rows=20 cols=80></textarea>
 	<button id="run_button">Run</button>
 	<button id="step_button">Step</button>
+	<div id="context"></div>
 	<div id="res"></div>
 	<div id="inst"></div>
 	<div id="stack"></div>
-	<div id="context"></div>
 
 	<script type="text/javascript">
 		var interface = new JSJ.Interface({

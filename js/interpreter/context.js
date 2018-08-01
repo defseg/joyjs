@@ -12,3 +12,7 @@ Context.prototype.prog = function () {
 Context.prototype.data = function () {
 	return this._data;
 }
+
+Context.prototype.toString = function () {
+	return this._name;
+}

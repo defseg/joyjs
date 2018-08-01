@@ -55,7 +55,7 @@ Stack.prototype.apops = function (num_args, type_arr = false) {
 }
 
 Stack.prototype.toString = function () {
-	return "Stack: " + this.arr.map(i => to_actually_good_string(i)).join(" ") + "";
+	return this.arr.map(i => to_actually_good_string(i)).join(" ") + "";
 }
 
 Stack.prototype.replace = function (new_arr) {

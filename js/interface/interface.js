@@ -34,9 +34,20 @@ Interface.prototype.code_changed = function () {
 Interface.prototype.step = function () {
 	if (!this.ready) this.init();
 	this.try_step();
-	this.res.innerText  = this.evaluator.stack();
-	this.inst.innerText = this.evaluator.prog();
-	this.context.innerText = this.evaluator.ctx()._name;
+
+	var resText = () => {
+		return this.evaluator.stack();
+	}
+	var instText = () => {
+		return this.evaluator.prog();
+	}
+	var contextHTML = () => {
+		return this.evaluator.ctxs.arr.map(a => "<span>" + a.toString() + "</span>").join("")
+	}
+
+	this.res.innerText  = resText()
+	this.inst.innerText = instText()
+	this.context.innerHTML = contextHTML();
 }
 
 Interface.prototype.init = function () {
