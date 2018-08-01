@@ -164,6 +164,11 @@ test("1 2 3 [+] ternary", [5]);
 test("1 2 3 4 [+] ternary", [7, 1]);
 test("1 [2 +] [3 +] cleave", [4, 3]);
 
+// map
+test("[1 2 3] [1 +] map", [2, 3, 4]);
+test("[1 2 3] [+] map", [], true);
+test("1 2 3 [1 +] map", [], true);
+
 // Recursive combinators
 test("5 [null] [succ] [dup pred] [i *] genrec", [120]);
 
@@ -207,3 +212,60 @@ test(`DEFINE fib ==
 // 3C: Binet's formula
 test("DEFINE fib == 1 5 sqrt dup rollupd + 2 / swap succ dupd swap dupd 1 swap - swap pow rollup pow swap - swap / trunc.\
 	6 fib", [13]);
+
+// https://hypercubed.github.io/joy/html/jp-nestrec.html
+test(`DEFINE 
+	    r-ack == 
+		[ [ [pop null]  popd succ ] 
+		  [ [null]  pop pred 1 r-ack ] 
+		  [ [dup pred swap] dip pred r-ack r-ack ] ] 
+		cond. 
+	[3 5] r-ack`, [253]);
+test(`DEFINE 
+	    r-hamilhyp == 
+		[ null ] 
+		[ pop ] 
+		[ dup rollup pred       r-hamilhyp 
+		  dupd cons swap pred   r-hamilhyp ] 
+		ifte.
+	[] 3 r-hamilhyp`, [[1,2,1,3,1,2,1]]);
+test(`DEFINE 
+	    x-fact == 
+		[ [ pop null ] 
+		  [ pop pop 1] 
+		  [ [dup pred] dip x *] 
+		  ifte ] 
+		x. 
+	[ 0 1 2 3 4 5 6 ] [x-fact] map`, [[1,1,2,6,24,120,720]]);
+test(`DEFINE
+		twice-x == dup [x] dip x;
+		x-mcc91 == 
+		[ [ pop 100 > ] 
+		  [ pop 10 - ] 
+		  [ [11 +] dip twice-x ] 
+		  ifte ] 
+		x. 
+	[ -7 42 99 100 101 102 345 ]  [x-mcc91]  map`, [[91,91,91,91,91,92,335]]);
+test(`DEFINE
+		twice-x == dup [x] dip x;
+		x-ack == 
+			[ [ [ [pop pop null]  pop popd succ ] 
+			    [ [pop null]  [pop pred 1] dip x ] 
+			    [ [[dup pred swap] dip pred] dip twice-x ] ] 
+			cond ] 
+			x.
+	[ [3 0] [3 1] [3 2] [3 3] [3 4] [3 5] ]   [i x-ack]  map`, [[5,13,29,61,125,253]]);
+test(`DEFINE
+	    y ==
+		[dup cons] swoncat dup cons i;
+	    twice-i ==
+		dup [i] dip i.
+	DEFINE
+	    y-ack ==
+		[ [ [ [pop pop null]  pop popd succ ]
+		    [ [pop null]  [pop pred 1] dip i ]
+		    [ [[dup pred swap] dip pred] dip twice-i ] ]
+		cond ]
+		y.
+	[ [3 0] [3 1] [3 2] [3 3] [3 4] [3 5] ]   [i y-ack]  map`, [[5,13,29,61,125,253]]);
+// up to 'Partially explicit recursion'

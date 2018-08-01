@@ -160,7 +160,7 @@ Evaluator.prototype.js_verbs = {
 ,   "i": function () {
         this.push_prog(this.stack().pops(1, [["array"]]));
     }
-,   "x": "dup [i] dip"
+,   "x": "dup i"
 ,   "dip": function () {
         var prog      = this.stack().pops(1, [["array"]]);
         var tmp       = this.stack().pops(1);
