@@ -263,7 +263,32 @@ Evaluator.prototype.js_verbs = {
 // condlinrec
 // step
 // fold
-// map
+,   "map": function () {
+        var prog   = this.stack().pops(1, [["array"]]);
+        var params = this.stack().pops(1, [["array"]]);
+        var acc    = [];
+        var new_stack;
+
+        var munge = (evaluator) => {
+            new_stack = evaluator.dup_stack();
+            new_stack.push(params.shift());
+            return new_stack
+        }
+
+        var callback = evaluator => {
+            acc.push(new_stack.pops(1));
+            if (params.length > 0) {
+                evaluator.push_ctx(j_dup(prog),
+                                   munge(evaluator),
+                                   "map",
+                                   callback);
+            } else {
+                evaluator.stack().push(acc);
+            }
+        }
+
+        this.push_ctx(j_dup(prog), munge(this), "map", callback);
+    }
 ,   "times": function () {
         var prog = this.stack().pops(1, [["array"]]);
         var i    = this.stack().pops(1, [["number"]]);
