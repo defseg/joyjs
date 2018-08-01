@@ -185,5 +185,15 @@ test("DEFINE factorial == [0 =] [pop 1] [dup 1 - factorial *] ifte. 5 factorial"
 test("5 [[pop 0 =] [pop pop 1] [[dup 1 -] dip i *] ifte] [dup cons] swap concat dup cons i", [120])
 
 // http://cubbi.com/fibonacci/joy.html
+// 1A
+// 2A-3
+test("DEFINE fib == [1 1] swap [[[+] nullary] infra] times 1 at. 6 fib", [13]);
+// 2B
 test("DEFINE fib == [1 1] dip [small] [pop swap pop] [pred [dup [swap] dip +] dip] tailrec. 6 fib", [13]);
+// 2C
 test("DEFINE fib == [0 1] dip [swap [+] unary] times popd. 6 fib", [13])
+// 3A
+// 3B
+// 3C
+test("DEFINE fib == 1 5 sqrt dup rollupd + 2 / swap succ dupd swap dupd 1 swap - swap pow rollup pow swap - swap / trunc.\
+	6 fib", [13]);

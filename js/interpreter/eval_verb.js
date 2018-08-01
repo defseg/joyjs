@@ -68,7 +68,7 @@ Evaluator.prototype.js_verbs = {
 ,   "log": function () {_arith1(this.stack(), Math.log)}
 , "log10": function () {_arith1(this.stack(), Math.log10)}
 // modf
-,   "pow": function () {_arith2(this.stack(), (a, b) => a ** b)}
+,   "pow": function () {_arith2(this.stack(), (b, a) => a ** b)}
 ,   "sin": function () {_arith1(this.stack(), Math.sin)}
 ,  "sinh": function () {_arith1(this.stack(), Math.sinh)}
 ,  "sqrt": function () {_arith1(this.stack(), Math.sqrt)}
