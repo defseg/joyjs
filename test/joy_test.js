@@ -70,23 +70,27 @@ test("0       1   choice", [], true);
 // Boolean operators behave strangely in Joy.
 // For integers, `xor` seems to test inequality.
 // `and`, `or`, and `not` use 0 = falsey, everything else = truthy.
-// TODO add tests and implement this - maybe read the source of Thun's interpreter to see what's going on
-// TODO Boolean operators on sets
-// TODO implement these at all - low priority, so I'll hold off for now
-// test("true  true  and", [true] );
-// test("true  false and", [false]);
-// test("false true  and", [false]);
-// test("false false and", [false]);
-// test("true  true  or ", [true] );
-// test("true  false or ", [true] );
-// test("false true  or ", [true] );
-// test("false false or ", [false]);
-// test("true  true  xor", [false]);
-// test("true  false xor", [true] );
-// test("false true  xor", [true] );
-// test("false false xor", [false]);
-// test("true  not", [false]);
-// test("false not", [true ]);
+// TODO implement all that stuff - for now, Boolean operators are limited to bools and sets
+test("1 2 and", [], true);
+
+test("true  true  and", [true] );
+test("true  false and", [false]);
+test("false true  and", [false]);
+test("false false and", [false]);
+test("true  true  or ", [true] );
+test("true  false or ", [true] );
+test("false true  or ", [true] );
+test("false false or ", [false]);
+test("true  true  xor", [false]);
+test("true  false xor", [true] );
+test("false true  xor", [true] );
+test("false false xor", [false]);
+test("true  not", [false]);
+test("false not", [true ]);
+
+test("{1 2} {2 3} and", [new Set([2])]);
+test("{1 2} {2 3} or ", [new Set([1,2,3])]);
+test("{1 2} {2 3} xor", [new Set([1,3])]);
 
 // Arithmetic
 test("1 2  +", [3]);
@@ -102,6 +106,8 @@ test("4 2  /", [2]);
 test("12  sign", [1]);
 test("-12 sign", [-1]);
 test("0   sign", [0]);
+test("12   neg", [-12]);
+test("-12  neg", [12]);
 test("123  abs", [123]);
 test("-123 abs", [123]);
 test("-0   abs", [0]);
@@ -171,7 +177,13 @@ test("[false [not] infra dup rest cons] [not] infra dup rest cons",
 	[[[true, [Symbol.for("not")], Symbol.for("infra"), Symbol.for("dup"), Symbol.for("rest"), Symbol.for("cons")]
 	, [Symbol.for("not")], Symbol.for("infra"), Symbol.for("dup"), Symbol.for("rest"), Symbol.for("cons")]]);
 
+// times
+test("0 5 [1 +] times", [5]);
 
 // Some simple programs
 test("DEFINE factorial == [0 =] [pop 1] [dup 1 - factorial *] ifte. 5 factorial", [120])
 test("5 [[pop 0 =] [pop pop 1] [[dup 1 -] dip i *] ifte] [dup cons] swap concat dup cons i", [120])
+
+// http://cubbi.com/fibonacci/joy.html
+test("DEFINE fib == [1 1] dip [small] [pop swap pop] [pred [dup [swap] dip +] dip] tailrec. 6 fib", [13]);
+test("DEFINE fib == [0 1] dip [swap [+] unary] times popd. 6 fib", [13])

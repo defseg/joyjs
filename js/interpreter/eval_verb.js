@@ -36,9 +36,9 @@ Evaluator.prototype.js_verbs = {
         // Joy's truthy/falsey values don't quite map to JS's.
         this.stack().push(j_truthy(maybe) ? true_cond : false_cond);
     }
-// or
-// xor
-// and
+,   "or" : function () {_bool(this.stack(), "or")}
+,   "xor": function () {_bool(this.stack(), "xor")}
+,   "and": function () {_bool(this.stack(), "and")}
 ,   "not": function () {
         var thing = this.stack().pops(1, [["boolean"]]);
         this.stack().push(!thing);
@@ -51,6 +51,9 @@ Evaluator.prototype.js_verbs = {
 ,   "rem": function () {_arith2(this.stack(), (a, b) => a % b)}
 ,   "div": "[dup] dip dup rollup rem [//] dip"
 ,  "sign": function () {_arith1(this.stack(), Math.sign)}
+,   "neg": "0 swap -"
+// ord
+// chr
 ,   "abs": function () {_arith1(this.stack(), Math.abs)}
 ,  "acos": function () {_arith1(this.stack(), Math.acos)}
 ,  "asin": function () {_arith1(this.stack(), Math.asin)}
@@ -138,7 +141,16 @@ Evaluator.prototype.js_verbs = {
             this.stack().push(thing.length === 0);
         }
     }
-// null...small
+,   "small": function () {
+        var thing = this.stack().pops(1, [["array", "string", "set", "number"]]);
+        if (j_type(thing) === "number") {
+            this.stack().push(0 <= thing && thing <= 1); // is this right?
+        } else if (j_type(thing) === "set") {
+            this.stack().push(thing.size <= 1);
+        } else {
+            this.stack().push(thing.length <= 1);
+        }
+    }
 ,   ">=": function () {(_comp(this.stack(), (a, b) => a >= b)) }
 ,   ">" : function () {(_comp(this.stack(), (a, b) => a >  b)) }
 ,   "<=": function () {(_comp(this.stack(), (a, b) => a <= b)) }
@@ -248,6 +260,20 @@ Evaluator.prototype.js_verbs = {
             }
         })
     }
+// condlinrec
+// step
+// fold
+// map
+,   "times": function () {
+        var prog = this.stack().pops(1, [["array"]]);
+        var i    = this.stack().pops(1, [["number"]]);
+
+        var callback = evaluator => {
+            if (i-- > 1) evaluator.push_ctx(prog, this.stack(), "times", callback);
+        }
+
+        this.push_ctx(prog, this.stack(), "times", callback);
+    }
 ,   "infra": function () {
         var prog = this.stack().pops(1, [["array"]]);
         var stack = new Stack(this.stack().pops(1, [["array"]]));
@@ -266,6 +292,28 @@ function _arith2(stack, func) {
 }
 function _arith1(stack, func) {
     stack.push(func(stack.pops(1, [['number']])));
+}
+
+// Boolean logic - sets or bools
+function _bool(stack, func_name) {
+    var [a, b] = stack.pops(2, [["boolean", "set"], ["boolean", "set"]]);
+    if (typeof a !== typeof b) throw new Error("Type error");
+
+    var res;
+    if (a instanceof Set) {
+        res = {
+            "and": (s, t) => new Set([...s].filter(x => t.has(x)))  // intersection
+        ,   "or" : (s, t) => new Set([...s].concat(...t))           // union
+        ,   "xor": (s, t) => new Set([...s].filter(x => !t.has(x))) // difference
+        }[func_name](a, b);
+    } else {
+        res = {
+            "and": (b, c) => b && c
+        ,   "or" : (b, c) => b || c
+        ,   "xor": (b, c) => !!(b ^ c)
+        }[func_name](a, b);
+    }
+    stack.push(res);
 }
 
 // Comparators
