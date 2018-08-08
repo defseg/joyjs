@@ -220,7 +220,7 @@ test(`DEFINE
 		  [ [null]  pop pred 1 r-ack ] 
 		  [ [dup pred swap] dip pred r-ack r-ack ] ] 
 		cond. 
-	[3 5] r-ack`, [253]);
+	2 3 r-ack`, [9]);
 test(`DEFINE 
 	    r-hamilhyp == 
 		[ null ] 
@@ -254,7 +254,7 @@ test(`DEFINE
 			    [ [[dup pred swap] dip pred] dip twice-x ] ] 
 			cond ] 
 			x.
-	[ [3 0] [3 1] [3 2] [3 3] [3 4] [3 5] ]   [i x-ack]  map`, [[5,13,29,61,125,253]]);
+	[ [3 0] [3 1] [3 2] ]   [i x-ack]  map`, [[5,13,29]]);
 test(`DEFINE
 	    y ==
 		[dup cons] swoncat dup cons i;
@@ -267,5 +267,5 @@ test(`DEFINE
 		    [ [[dup pred swap] dip pred] dip twice-i ] ]
 		cond ]
 		y.
-	[ [3 0] [3 1] [3 2] [3 3] [3 4] [3 5] ]   [i y-ack]  map`, [[5,13,29,61,125,253]]);
+	[ [3 0] [3 1] [3 2] ]   [i y-ack]  map`, [[5,13,29]]);
 // up to 'Partially explicit recursion'
