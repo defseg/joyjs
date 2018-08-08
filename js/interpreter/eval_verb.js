@@ -220,11 +220,41 @@ Evaluator.prototype.js_verbs = {
             } else {
                 evaluator.push_ctx(false_cond, evaluator.ctx()._data, "ifte_false");
             }
-        })
+        });
     }
+// ifinteger...iffile
+,   "cond": function () {
+        // TODO: should add tests and see how Thun's implementation handles malformed inputs
+        var conds = j_dup(this.stack().pops(1, [["array"]]));
+        var d = conds.pop(1); 
+        var done = false;
+        var that = this;
+
+        var try_one = () => {
+            console.log(conds)
+            if (conds.length === 0) {
+                that.push_prog(d);
+                return;
+            }
+
+            var ti = conds.shift();
+            var bi = ti.shift();
+            var bi_stack = that.dup_stack();
+            that.push_ctx(bi, bi_stack, "cond", evaluator => {
+                if (j_truthy(bi_stack.pops(1))) {
+                    evaluator.push_prog(ti);
+                } else {
+                    try_one();
+                }
+            });
+        }
+
+        try_one();
+    }
+// while
 ,   "linrec": function () {
         var [r2, r1, t, cond] = this.stack().pops(4, [["array"], ["array"], ["array"], ["array"]]);
-        var cond_stack = j_dup(this.stack());
+        var cond_stack = this.dup_stack();
 
         this.push_ctx(cond, cond_stack, "linrec_cond", evaluator => {
             if (j_truthy(cond_stack.pops(1))) {
