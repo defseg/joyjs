@@ -47,8 +47,8 @@ Evaluator.prototype.js_verbs = {
 ,   "-"  : function () {_arith2(this.stack(), (a, b) => b - a)}
 ,   "*"  : function () {_arith2(this.stack(), (a, b) => b * a)}
 ,   "/"  : function () {_arith2(this.stack(), (a, b) => b / a)}
-,   "//" : function () {_arith2(this.stack(), (a, b) => Math.floor(a / b))} // Floor integer division - not in Thun's Joy. Could add int/float distinction but won't yet. Might take this out later.
-,   "rem": function () {_arith2(this.stack(), (a, b) => a % b)}
+,   "//" : function () {_arith2(this.stack(), (a, b) => Math.floor(b / a))} // Floor integer division - not in Thun's Joy. Could add int/float distinction but won't yet. Might take this out later.
+,   "rem": function () {_arith2(this.stack(), (a, b) => b % a)}
 ,   "div": "[dup] dip dup rollup rem [//] dip"
 ,  "sign": function () {_arith1(this.stack(), Math.sign)}
 ,   "neg": "0 swap -"
@@ -121,7 +121,7 @@ Evaluator.prototype.js_verbs = {
 // size
 // opcase...case
 ,   "uncons": "dup rest [first] dip"
-,   "unswons": "swap uncons"
+,   "unswons": "uncons swap"
 // drop...take
 ,   "concat": function () {
         // TODO sets?
@@ -227,11 +227,9 @@ Evaluator.prototype.js_verbs = {
         // TODO: should add tests and see how Thun's implementation handles malformed inputs
         var conds = j_dup(this.stack().pops(1, [["array"]]));
         var d = conds.pop(1); 
-        var done = false;
         var that = this;
 
         var try_one = () => {
-            console.log(conds)
             if (conds.length === 0) {
                 that.push_prog(d);
                 return;
@@ -291,7 +289,55 @@ Evaluator.prototype.js_verbs = {
             }
         })
     }
-// condlinrec
+,   "condlinrec": function () {
+        // TODO: maybe factor out try_one from this and cond?
+        // DON'T MUTATE CONDS HERE
+        var conds = j_dup(this.stack().pops(1, [["array"]]));
+        var i = 0;
+        var that = this;
+        // Each Ci is of the forms [[B] [T]] or [[B] [R1] [R2]].
+
+        var try_one = () => {
+            console.log(i);
+            if (i === conds.length - 1) {
+                var d = conds[conds.length - 1];
+                if (d.length === 1) {
+                    that.push_prog(d);
+                } else if (d.length === 2) {
+                    var [r1, r2] = d;
+                    var new_prog = r1.concat([conds, Symbol.for("condlinrec")]).concat(r2);
+                    that.push_prog(new_prog);
+                } else {
+                    throw new Error("Invalid condlinrec default condition");
+                }
+                return;
+            }
+
+            var cond = conds[i];
+            var b    = cond[0];
+            var b_stack = that.dup_stack();
+            console.log(cond);
+
+            if (cond.length === 2) {
+                var new_prog = cond[1];
+            } else if (cond.length === 3) {
+                var [r1, r2] = cond.slice(1);
+                var new_prog = r1.concat([conds, Symbol.for("condlinrec")]).concat(r2);
+                console.log(new_prog);
+            }
+
+            that.push_ctx(b, b_stack, "condlinrec_cond", evaluator => {
+                if (j_truthy(b_stack.pops(1))) {
+                    that.push_prog(new_prog);
+                } else {
+                    i++;
+                    try_one();
+                }
+            });
+        }
+
+        try_one();
+    }
 // step
 // fold
 ,   "map": function () {

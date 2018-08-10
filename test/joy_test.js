@@ -189,6 +189,19 @@ test("0 5 [1 +] times", [5]);
 test("DEFINE factorial == [0 =] [pop 1] [dup 1 - factorial *] ifte. 5 factorial", [120])
 test("5 [[pop 0 =] [pop pop 1] [[dup 1 -] dip i *] ifte] [dup cons] swap concat dup cons i", [120])
 
+// Some programs from the documentation
+test(`DEFINE
+uncons2   ==  [uncons ] dip uncons  swapd;
+unswons2  ==  [unswons] dip unswons swapd;
+merge ==
+        [ [ [null] [pop] ]
+          [ [pop null] [swap pop] ]
+          [ [unswons2 <] [[uncons] dip] [cons] ]
+          [ [unswons2 >] [uncons swapd] [cons] ]
+          [ [uncons2] [cons cons] ] ]
+        condlinrec.
+[1 3 5] [2 4 6] merge`, [[1,2,3,4,5,6]]);
+
 // http://cubbi.com/fibonacci/joy.html
 // 1A: Naive binary recursion
 // 2A-3: Data structure - simple list
