@@ -169,11 +169,9 @@ test("[1 2 3] [1 +] map", [[2, 3, 4]]);
 test("[1 2 3] [+] map", [], true);
 test("1 2 3 [1 +] map", [], true);
 
-// Recursive combinators
+// Recursive combinators. TODO: more
 test("5 [null] [succ] [dup pred] [i *] genrec", [120]);
-
-// TODO: more linrec and tailrec
-// TODO: verify these
+test("[3 4 1 5 2] [small] [] [uncons [>] split] [enconcat] binrec", [1,2,3,4,5])
 test("6 [null] [succ] [dup pred] [*] linrec", [720])
 test("[1 2 3 4 5] [rest null] [first] [rest] tailrec", [5]);
 
@@ -184,6 +182,17 @@ test("[false [not] infra dup rest cons] [not] infra dup rest cons",
 
 // times
 test("0 5 [1 +] times", [5]);
+
+// split
+test("[3 1 4 2] uncons [>] split", [[4], [1, 2], 3]);
+// recursive quicksort
+test(`DEFINE qsort == 
+  [small]
+  []
+  [uncons [>] split qsort [qsort] dip enconcat]
+  ifte.
+
+[3 5 4 1 2] qsort`, [[1,2,3,4,5]]);
 
 // Some simple programs
 test("DEFINE factorial == [0 =] [pop 1] [dup 1 - factorial *] ifte. 5 factorial", [120])

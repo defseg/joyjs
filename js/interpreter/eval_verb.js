@@ -249,7 +249,18 @@ Evaluator.prototype.js_verbs = {
 
         try_one();
     }
-// while
+,   "while": function () {
+        var [d, b] = this.stack().pops(2, [["array"], ["array"]]);
+        var cond_stack = this.dup_stack();
+
+        this.push_ctx(b, cond_stack, "while", evaluator => {
+            var foo = cond_stack.pops(1);
+            if (j_truthy(foo)) {
+                evaluator.push_prog([b].concat([d]).concat([Symbol.for('while')]));
+                evaluator.push_prog(d);
+            }
+        })
+    }
 ,   "linrec": function () {
         var [r2, r1, t, cond] = this.stack().pops(4, [["array"], ["array"], ["array"], ["array"]]);
         var cond_stack = this.dup_stack();
@@ -289,6 +300,7 @@ Evaluator.prototype.js_verbs = {
             }
         })
     }
+// binrec
 ,   "condlinrec": function () {
         // TODO: maybe factor out try_one from this and cond?
         // DON'T MUTATE CONDS HERE
@@ -366,6 +378,31 @@ Evaluator.prototype.js_verbs = {
 
         this.push_ctx(j_dup(prog), munge(this), "map", callback);
     }
+,   "filter": function () {
+        var prog      = this.stack().pops(1, [["array"]]);
+        var to_filter = this.stack().pops(1, [["array"]]);
+        var acc       = []; 
+        var new_stack, being_filtered;
+
+        var munge = (evaluator) => {
+            new_stack = evaluator.dup_stack();
+            being_filtered = to_filter.shift();
+            new_stack.push(being_filtered);
+            return new_stack
+        }
+
+        var callback = evaluator => {
+            if (j_truthy(new_stack.pops(1))) acc.push(being_filtered);
+            
+            if (to_filter.length > 0) {
+                evaluator.push_ctx(j_dup(prog), munge(evaluator), "filter", callback);
+            } else {
+                evaluator.stack().push(acc);
+            }
+        }
+
+        this.push_ctx(j_dup(prog), munge(this), "filter", callback);
+    }
 ,   "times": function () {
         var prog = this.stack().pops(1, [["array"]]);
         var i    = this.stack().pops(1, [["number"]]);
@@ -383,6 +420,32 @@ Evaluator.prototype.js_verbs = {
         this.push_ctx(prog, stack, "infra", evaluator => {
             evaluator.stack().push_one(stack.arr);
         })
+    }
+// TODO put this in the right place
+,   "split": function () {
+        // running the splits doesn't mute the stack
+        var prog = this.stack().pops(1, [["array"]]);
+        var arr  = this.stack().pops(1, [["array"]]);
+        var res_true  = [];
+        var res_false = [];
+        var that = this;
+
+        var try_one = () => {
+            var new_stack = that.dup_stack();
+            var thing     = arr.shift();
+            new_stack.push(thing);
+            that.push_ctx(prog, new_stack, "split", evaluator => {
+                var res = j_truthy(new_stack.pops(1));
+                if (res) res_true.push(thing); else res_false.push(thing);
+                if (arr.length === 0) {
+                    that.stack().push(res_false, res_true);
+                } else {
+                    try_one();
+                }
+            })
+        }
+
+        try_one();
     }
 }
 
