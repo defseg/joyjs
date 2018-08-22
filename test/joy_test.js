@@ -211,6 +211,14 @@ merge ==
         condlinrec.
 [1 3 5] [2 4 6] merge`, [[1,2,3,4,5,6]]);
 
+test(`DEFINE gcd  ==
+	[ 0 >]
+	[ dup rollup rem ]
+	while
+	pop.
+
+18 12 gcd 991 997 gcd`, [1, 6]);
+
 // http://cubbi.com/fibonacci/joy.html
 // 1A: Naive binary recursion
 // 2A-3: Data structure - simple list
