@@ -17,6 +17,16 @@ test("{1 2}", [new Set([1, 2])]  );
 test('"foo"', ["foo"]            );
 test("'a"   , ["a"]              );
 
+// Comments
+test("(* 1 *) 2", [2]);
+test(`1 (* Multi-line
+	       comment *) 2 +`, [3]);
+test("(* 2 * (* 2 ) * 2 ) (** 2 *() 2 * ) 2 *) 1", [1]);
+test(`# Comment 1
+	  3
+	  # Comment 2
+	  4 +`, [7]);
+
 // Basic stack manipulation
 test("id"                   , []                                );
 test("true id"              , [true]                            );
