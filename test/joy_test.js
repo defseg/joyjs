@@ -8,6 +8,8 @@ function test(a, b, c = false) {
 // Basic objects
 test("1"    , [1]                );
 test("1.5"  , [1.5]              );
+test("1e3"  , [1000]             );
+test("1e-3" , [0.001]            );
 test("1 2"  , [2, 1]             );
 test("true" , [true]             );
 test("false", [false]            );

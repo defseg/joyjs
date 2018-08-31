@@ -118,7 +118,7 @@ function TokenStream(input) {
 		return make_token("char", word[1]);
 	}
 	function read_number(word = false) {
-		if (!word) word = get_word();
+		if (!word) word = get_number();
 		if (!is_number(word)) input.err(`Invalid number ${word}`);
 		return parse_number(word);
 	}
@@ -126,13 +126,14 @@ function TokenStream(input) {
 	// --- READER UTILITIES ---
 
 	function is_number(str) {
-		return !(/[^0-9Eex]/.test(str));
+		// could use a regex but this is simpler and *should* work
+		return !isNaN(parseInt(str));
 	}
 	function parse_number(str, sign = 1) {
 		// set sign to -1 for negative numbers
 		//
-		// if it has scientific notation, it's a float
-		if (/Ee/.test(str)) return parse_float(str, sign);
+		// if it has scientific notation or a ., it's a float
+		if (/[Ee\.]/.test(str)) return parse_float(str, sign);
 		// JS will automatically handle hex - no need to worry about it
 		// so try to parseInt it and kick it up to float if it's out of bounds
 		var tmp = parseInt(str);
@@ -146,7 +147,13 @@ function TokenStream(input) {
 		return make_token("float", parseFloat(str) * sign);
 	}
 	function get_word() {
-		return read_while(chr => !(is_whitespace(chr)) && (reserved_characters.indexOf(chr) == -1));
+		return read_while(_get_test);
+	}
+	function get_number() {
+		return read_while(chr => _get_test(chr) || chr === ".");
+	}
+	function _get_test(chr) {
+		return !(is_whitespace(chr)) && (reserved_characters.indexOf(chr) === -1);
 	}
 
 	// --- DISPATCHER ---
