@@ -58,13 +58,20 @@ function TokenStream(input) {
 		return str;
 	}
 	function skip_multi_line_comment() {
-		input.next();
+		input.next(); // discard (
 		if (input.peek() !== "*") input.err("Malformed comment");
 		_skip_multi_line_comment();
 	}
 	function _skip_multi_line_comment() {
 		read_while(chr => chr !== "*");
-		if (input.peek() !== ")") skip_multi_line_comment(); else input.next();
+		input.next(); // discard *
+		if (input.peek() === ")") {
+			// end of comment
+			input.next(); // discard )
+			return;
+		} else {
+			_skip_multi_line_comment();
+		}
 	}
 	function skip_comment() {
 		read_while(chr => chr !== "\n");
