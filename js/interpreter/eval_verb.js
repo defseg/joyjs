@@ -351,7 +351,34 @@ Evaluator.prototype.js_verbs = {
         try_one();
     }
 // step
-// fold
+,   "fold": function () {
+        var prog   = this.stack().pops(1, [["array"]]);
+        var v0     = this.stack().pops(1);
+        var params = this.stack().pops(1, [["array", "string"]]);
+        var new_stack;
+
+        new_stack = this.dup_stack();
+        new_stack.push(v0);
+        new_stack.push(params.shift());
+
+        var munge = (new_stack) => {
+            new_stack.push(params.shift());
+            return new_stack
+        }
+
+        var callback = evaluator => {
+            if (params.length > 0) {
+                evaluator.push_ctx(j_dup(prog),
+                                   munge(new_stack),
+                                   "fold",
+                                   callback);
+            } else {
+                evaluator.stack().push(new_stack.pops(1));
+            }
+        }
+
+        this.push_ctx(j_dup(prog), new_stack, "fold", callback);
+    }
 ,   "map": function () {
         var prog   = this.stack().pops(1, [["array"]]);
         var params = this.stack().pops(1, [["array"]]);
