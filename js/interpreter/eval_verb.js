@@ -18,7 +18,15 @@ Evaluator.prototype.get_verb = function (verb) {
 }
 
 Evaluator.prototype.js_verbs = {
-    "id"  : function () {}
+    // maxint
+    // stack
+    // time
+    "rand": function () {
+        // Return a random integer.
+        // In the range 0...2^32 because that's what Thun's implementation does.
+        this.stack().push(Math.floor(Math.random() * 2**32));
+    }
+,   "id"  : function () {}
 ,   "dup" : function () { var a = this.stack().pops(1); this.stack().push(...[j_dup(a),j_dup(a)]) }
 ,   "swap": function () { var [a, b] = this.stack().pops(2); this.stack().push(...[b,a]) }
 ,   "rollup"   : "swap [swap] dip"
@@ -118,7 +126,10 @@ Evaluator.prototype.js_verbs = {
         this.stack().push(agg[i]);
     }
 ,   "of": "swap at"
-// size
+,   "size": function () {
+        var agg = this.stack().pops(1, [["array"]]);
+        this.stack().push(agg.length);
+    }
 // opcase...case
 ,   "uncons": "dup rest [first] dip"
 ,   "unswons": "uncons swap"
@@ -158,6 +169,19 @@ Evaluator.prototype.js_verbs = {
 ,   "<" : function () {(_comp(this.stack(), (a, b) => a <  b)) }
 ,   "!=": function () {(_comp(this.stack(), (a, b) => a != b)) }
 ,   "=" : function () {(_comp(this.stack(), (a, b) => a ===b)) }
+// equal
+,   "has": function () { // array trickery is the same in Joy as in JS, so no nasty workarounds needed
+        var agg    = this.stack().pops(1, [["array", "string", "set"]]);
+        var res;
+        if (agg instanceof Set) {
+            res = agg.has(member);
+        } else {
+            res = agg.indexOf(member) > -1;
+        } 
+        this.stack().push(res);
+    }
+,   "in": "swap has"
+// integer...file
 ,   "i": function () {
         this.push_prog(this.stack().pops(1, [["array"]]));
     }
@@ -473,6 +497,12 @@ Evaluator.prototype.js_verbs = {
         }
 
         try_one();
+    }
+
+,   "putchars": function () {
+        // TODO change this to not use the console
+        // also shouldn't append newline
+        console.log(this.stack().pops(1, [["string"]]));
     }
 }
 
