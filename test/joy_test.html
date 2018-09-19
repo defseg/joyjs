@@ -42,11 +42,6 @@ function _test(code, _expected, should_error = false) {
 		return;
 	}
 
-	// sometimes things are actually objects, because we want their text location for syntax highlighting.
-	// there is probably a better way to do this.
-	// this is why we build arrays with code in the tests right now.
-	res.stack().arr = res.stack().arr.map(a => j_value(a));
-
 	if (_.isEqual(res.stack().arr, expected.arr)) write(code, es(expected), true); else write(code, es(expected), es(res.stack()));
 
 	function es(e) {

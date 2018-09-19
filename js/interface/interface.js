@@ -8,9 +8,6 @@ var Interface = JSJ.Interface = function (objs) {
 	
 	this.build_listeners();
 
-	// init this now
-	$(this.code_area).highlightWithinTextarea({highlight: null});
-
 	// init evaluator
 	this.evaluator = new Evaluator();
 }

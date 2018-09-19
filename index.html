@@ -14,10 +14,8 @@
 	<script src="js/interpreter/eval_verb.js"></script>
 
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-	<script src="vendor/jquery.highlight-within-textarea.js"></script> 
-	<link href="vendor/jquery.highlight-within-textarea.css" rel="stylesheet">
 	<style type="text/css">
-		textarea, .hwt-container, .hwt-content {
+		textarea {
 			font-family: monospace;
 		}
 		#res::before {
@@ -41,9 +39,11 @@
 	</style>
 </head>
 <body>
-	<textarea id="code_area" rows=20 cols=80></textarea>
-	<button id="run_button">Run</button>
-	<button id="step_button">Step</button>
+	<section>
+		<textarea id="code_area" rows=20 cols=80></textarea>
+		<button id="run_button">Run</button>
+		<button id="step_button">Step</button>
+	</section>
 	<div id="context"></div>
 	<div id="res"></div>
 	<div id="inst"></div>
