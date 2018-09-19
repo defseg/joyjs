@@ -63,7 +63,11 @@ Interface.prototype.update_display = function () {
 
 Interface.prototype.init = function () {
 	var code = this.code_area.value;
-	this.evaluator.init(make(code));
+	try {
+		this.evaluator.init(make(code));
+	} catch(error) {
+		this.err(error);
+	}
 	this.ready = true;
 }
 
@@ -71,10 +75,14 @@ Interface.prototype.try_step = function () {
 	try {
 		this.evaluator.step();
 	} catch(error) {
-		// change this later
-		alert(error);
-		throw error;
+		this.err(error);
 	}
+}
+
+Interface.prototype.err = function (error) {
+	// TODO change this later
+	alert(error);
+	throw error;
 }
 
 })();
