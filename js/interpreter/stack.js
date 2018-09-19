@@ -16,6 +16,11 @@ Stack.prototype.fpush = function (...thing) {
 	return new Stack(this.arr.concat(thing));
 }
 
+Stack.prototype.length = function () {
+	// Return length of stack - nice to have for interface stuff
+	return this.arr.length;
+}
+
 Stack.prototype.pops = function (num_args, type_arr = false) {
 	// Pops `num_args` items.
 	// Returns the item if `num_args == 1`; otherwise returns an array.
